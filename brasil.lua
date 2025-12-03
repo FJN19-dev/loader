@@ -3491,6 +3491,211 @@ Toggle:OnChanged(function(state)
     end
 end)
 
+-- ESP FRUTAS: versão robusta e auto-recuperável
+local success, Fluent = pcall(function() return Fluent end) -- tenta ver se Fluent já existe
+-- (se você já carregou Fluent acima, Tabs já existe no seu scope)
+-- Ajuste: se Tabs não existir no escopo, troque Tabs.Players pelo seu objeto de tabs
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- SAFEGUARD: garante que Tabs.Players exista
+if not (typeof(Tabs) == "table" and Tabs.Players) then
+    warn("[FruitESP] Atenção: 'Tabs.Players' não encontrado. Certifique-se de que a variável Tabs está disponível.")
+    -- tenta continuar, mas não cria o toggle — evita crash
+end
+
+-- estado global
+getgenv().FruitESP = getgenv().FruitESP or false
+local FruitCache = {} -- [tool] = {Part=..., Highlight=..., Tag=..., Text=...}
+local Enabled = false
+
+-- cria toggle de forma segura
+local function createToggle()
+    if not (typeof(Tabs) == "table" and Tabs.Players and typeof(Tabs.Players.AddToggle) == "function") then
+        warn("[FruitESP] Não foi possível criar Toggle: Tabs.Players inválido.")
+        return
+    end
+
+    local toggle = Tabs.Players:AddToggle("FruitESPToggle", {
+        Title = "Fruit ESP",
+        Default = false,
+        Callback = function(val)
+            getgenv().FruitESP = val
+            Enabled = val
+        end
+    })
+
+    -- alguns hubs expõem SetValue ou Set to ensure UI state
+    if typeof(toggle.SetValue) == "function" then
+        pcall(function() toggle:SetValue(getgenv().FruitESP) end)
+    end
+    Enabled = getgenv().FruitESP
+end
+
+-- tentativa de criar o toggle (se possível)
+pcall(createToggle)
+
+-- util: pegar melhor BasePart (Handle preferencial)
+local function getFruitPart(tool)
+    if not tool then return nil end
+    if tool:FindFirstChild("Handle") and tool.Handle:IsA("BasePart") then
+        return tool.Handle
+    end
+    for _, v in ipairs(tool:GetDescendants()) do
+        if v:IsA("BasePart") then
+            return v
+        end
+    end
+    return nil
+end
+
+local function createHighlight(part)
+    if not part or not part.Parent then return end
+    if part:FindFirstChild("FruitESP_Highlight") then return end
+    local ok, err = pcall(function()
+        local h = Instance.new("Highlight")
+        h.Name = "FruitESP_Highlight"
+        h.FillColor = Color3.fromRGB(170, 0, 255)
+        h.OutlineColor = Color3.fromRGB(255, 255, 255)
+        h.FillTransparency = 0.55
+        h.OutlineTransparency = 0.25
+        h.Adornee = part
+        h.Parent = part
+    end)
+    if not ok then warn("[FruitESP] createHighlight failed:", err) end
+end
+
+local function createBillboard(part, initialText)
+    if not part or not part.Parent then return end
+    if part:FindFirstChild("FruitESP_Tag") then return end
+    local ok, err = pcall(function()
+        local gui = Instance.new("BillboardGui")
+        gui.Name = "FruitESP_Tag"
+        gui.Size = UDim2.new(0, 120, 0, 25)
+        gui.AlwaysOnTop = true
+        gui.StudsOffset = Vector3.new(0, 1.6, 0)
+        gui.Adornee = part
+
+        local text = Instance.new("TextLabel")
+        text.Name = "Text"
+        text.Parent = gui
+        text.BackgroundTransparency = 1
+        text.Size = UDim2.new(1, 0, 1, 0)
+        text.Font = Enum.Font.GothamBold
+        text.TextScaled = true
+        text.TextStrokeTransparency = 0.2
+        text.TextColor3 = Color3.fromRGB(170, 0, 255)
+        text.Text = initialText or "<Fruit>"
+
+        gui.Parent = part
+    end)
+    if not ok then warn("[FruitESP] createBillboard failed:", err) end
+end
+
+local function registerTool(tool)
+    if not tool or FruitCache[tool] then return end
+    local part = getFruitPart(tool)
+    if not part then return end
+    -- create visuals
+    createHighlight(part)
+    createBillboard(part, "<" .. tool.Name .. "> | ?m")
+    -- store in cache
+    local data = {}
+    data.Tool = tool
+    data.Part = part
+    data.Highlight = part:FindFirstChild("FruitESP_Highlight")
+    data.Tag = part:FindFirstChild("FruitESP_Tag")
+    data.Text = data.Tag and data.Tag:FindFirstChild("Text")
+    FruitCache[tool] = data
+end
+
+local function cleanupCache()
+    for tool, data in pairs(FruitCache) do
+        if not tool or not tool.Parent then
+            -- destroy visuals safely
+            pcall(function()
+                if data.Highlight then data.Highlight:Destroy() end
+                if data.Tag then data.Tag:Destroy() end
+            end)
+            FruitCache[tool] = nil
+        end
+    end
+end
+
+-- render update: atualiza texto e visibilidade sem recriar
+RunService.RenderStepped:Connect(function()
+    if not Enabled then
+        -- desativa visualizações (não destrói cache)
+        for _, data in pairs(FruitCache) do
+            pcall(function()
+                if data.Highlight then data.Highlight.Enabled = false end
+                if data.Tag then data.Tag.Enabled = false end
+            end)
+        end
+        return
+    end
+
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    for tool, data in pairs(FruitCache) do
+        if tool and tool.Parent and data.Part and data.Text then
+            local success, err = pcall(function()
+                local dist = math.floor((hrp.Position - data.Part.Position).Magnitude / 3)
+                data.Text.Text = "<" .. tool.Name .. "> | " .. tostring(dist) .. "m"
+                if data.Highlight then data.Highlight.Enabled = true end
+                if data.Tag then data.Tag.Enabled = true end
+            end)
+            if not success then
+                warn("[FruitESP] update failed for tool:", tool, err)
+            end
+        end
+    end
+end)
+
+-- scanner: registra novas frutas periodicamente (não recria existentes)
+task.spawn(function()
+    while true do
+        task.wait(0.6)
+        if Enabled then
+            -- varre descendants para pegar frutas dentro de pastas
+            local desc = workspace:GetDescendants()
+            for _, obj in ipairs(desc) do
+                if obj and obj:IsA("Tool") and obj.Name:lower():find("fruit") then
+                    if not FruitCache[obj] then
+                        -- tenta registrar
+                        pcall(registerTool, obj)
+                    end
+                end
+            end
+            -- limpa removidos
+            pcall(cleanupCache)
+        end
+    end
+end)
+
+-- fallback: limpa cache se toggle desligado (opcional)
+task.spawn(function()
+    while true do
+        task.wait(5)
+        if not Enabled then
+            -- destrói os objetos para liberar memória quando desligado
+            for tool, data in pairs(FruitCache) do
+                pcall(function()
+                    if data.Highlight then data.Highlight:Destroy() end
+                    if data.Tag then data.Tag:Destroy() end
+                end)
+                FruitCache[tool] = nil
+            end
+        end
+    end
+end)
+
+print("[FruitESP] loaded. Toggle via Tabs.Players (Fruit ESP).")
+
+
 -----------------------------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -3579,208 +3784,6 @@ Toggle:OnChanged(function(value)
     end
 end)
 
-
-local success, Fluent = pcall(function() return Fluent end)
-
-
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-
-if not (typeof(Tabs) == "table" and Tabs.Players) then
-    warn("[FruitESP] Atenção: 'Tabs.Players' não encontrado. Certifique-se de que a variável Tabs está disponível.")
-    
-end
-
-
-getgenv().FruitESP = getgenv().FruitESP or false
-local FruitCache = {} 
-local Enabled = false
-
-
-local function createToggle()
-    if not (typeof(Tabs) == "table" and Tabs.Players and typeof(Tabs.Players.AddToggle) == "function") then
-        warn("[FruitESP] Não foi possível criar Toggle: Tabs.Players inválido.")
-        return
-    end
-
-    local toggle = Tabs.Players:AddToggle("FruitESPToggle", {
-        Title = "Fruit ESP",
-        Default = false,
-        Callback = function(val)
-            getgenv().FruitESP = val
-            Enabled = val
-        end
-    })
-
-    
-    if typeof(toggle.SetValue) == "function" then
-        pcall(function() toggle:SetValue(getgenv().FruitESP) end)
-    end
-    Enabled = getgenv().FruitESP
-end
-
-
-pcall(createToggle)
-
-
-local function getFruitPart(tool)
-    if not tool then return nil end
-    if tool:FindFirstChild("Handle") and tool.Handle:IsA("BasePart") then
-        return tool.Handle
-    end
-    for _, v in ipairs(tool:GetDescendants()) do
-        if v:IsA("BasePart") then
-            return v
-        end
-    end
-    return nil
-end
-
-local function createHighlight(part)
-    if not part or not part.Parent then return end
-    if part:FindFirstChild("FruitESP_Highlight") then return end
-    local ok, err = pcall(function()
-        local h = Instance.new("Highlight")
-        h.Name = "FruitESP_Highlight"
-        h.FillColor = Color3.fromRGB(170, 0, 255)
-        h.OutlineColor = Color3.fromRGB(255, 255, 255)
-        h.FillTransparency = 0.55
-        h.OutlineTransparency = 0.25
-        h.Adornee = part
-        h.Parent = part
-    end)
-    if not ok then warn("[FruitESP] createHighlight failed:", err) end
-end
-
-local function createBillboard(part, initialText)
-    if not part or not part.Parent then return end
-    if part:FindFirstChild("FruitESP_Tag") then return end
-    local ok, err = pcall(function()
-        local gui = Instance.new("BillboardGui")
-        gui.Name = "FruitESP_Tag"
-        gui.Size = UDim2.new(0, 120, 0, 25)
-        gui.AlwaysOnTop = true
-        gui.StudsOffset = Vector3.new(0, 1.6, 0)
-        gui.Adornee = part
-
-        local text = Instance.new("TextLabel")
-        text.Name = "Text"
-        text.Parent = gui
-        text.BackgroundTransparency = 1
-        text.Size = UDim2.new(1, 0, 1, 0)
-        text.Font = Enum.Font.GothamBold
-        text.TextScaled = true
-        text.TextStrokeTransparency = 0.2
-        text.TextColor3 = Color3.fromRGB(170, 0, 255)
-        text.Text = initialText or "<Fruit>"
-
-        gui.Parent = part
-    end)
-    if not ok then warn("[FruitESP] createBillboard failed:", err) end
-end
-
-local function registerTool(tool)
-    if not tool or FruitCache[tool] then return end
-    local part = getFruitPart(tool)
-    if not part then return end
-  
-    createHighlight(part)
-    createBillboard(part, "<" .. tool.Name .. "> | ?m")
-    
-    local data = {}
-    data.Tool = tool
-    data.Part = part
-    data.Highlight = part:FindFirstChild("FruitESP_Highlight")
-    data.Tag = part:FindFirstChild("FruitESP_Tag")
-    data.Text = data.Tag and data.Tag:FindFirstChild("Text")
-    FruitCache[tool] = data
-end
-
-local function cleanupCache()
-    for tool, data in pairs(FruitCache) do
-        if not tool or not tool.Parent then
-            
-            pcall(function()
-                if data.Highlight then data.Highlight:Destroy() end
-                if data.Tag then data.Tag:Destroy() end
-            end)
-            FruitCache[tool] = nil
-        end
-    end
-end
-
-
-RunService.RenderStepped:Connect(function()
-    if not Enabled then
-        
-        for _, data in pairs(FruitCache) do
-            pcall(function()
-                if data.Highlight then data.Highlight.Enabled = false end
-                if data.Tag then data.Tag.Enabled = false end
-            end)
-        end
-        return
-    end
-
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    for tool, data in pairs(FruitCache) do
-        if tool and tool.Parent and data.Part and data.Text then
-            local success, err = pcall(function()
-                local dist = math.floor((hrp.Position - data.Part.Position).Magnitude / 3)
-                data.Text.Text = "<" .. tool.Name .. "> | " .. tostring(dist) .. "m"
-                if data.Highlight then data.Highlight.Enabled = true end
-                if data.Tag then data.Tag.Enabled = true end
-            end)
-            if not success then
-                warn("[FruitESP] update failed for tool:", tool, err)
-            end
-        end
-    end
-end)
-
-
-task.spawn(function()
-    while true do
-        task.wait(0.6)
-        if Enabled then
-           
-            local desc = workspace:GetDescendants()
-            for _, obj in ipairs(desc) do
-                if obj and obj:IsA("Tool") and obj.Name:lower():find("fruit") then
-                    if not FruitCache[obj] then
-                        
-                        pcall(registerTool, obj)
-                    end
-                end
-            end
-            
-            pcall(cleanupCache)
-        end
-    end
-end)
-
-
-task.spawn(function()
-    while true do
-        task.wait(5)
-        if not Enabled then
-            
-            for tool, data in pairs(FruitCache) do
-                pcall(function()
-                    if data.Highlight then data.Highlight:Destroy() end
-                    if data.Tag then data.Tag:Destroy() end
-                end)
-                FruitCache[tool] = nil
-            end
-        end
-    end
-end)
-
-print("[FruitESP] loaded. Toggle via Tabs.Players (Fruit ESP).")
 
 
 -----Sub-----
@@ -8441,375 +8444,197 @@ Tabs.Shop:AddButton({
     end
 })
 
-Tabs.Shop:AddSection("Shop Options")
-	Tabs.Shop:AddButton({
-		Title = "Buy Buso",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyHaki", "Buso")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Geppo",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyHaki", "Geppo")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Soru",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyHaki", "Soru")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Ken",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("KenTalk", "Buy")
-		end
-	})
-
-	Tabs.Shop:AddSection("Fighting - Style")
-	Tabs.Shop:AddButton({
-		Title = "Buy Black Leg",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyBlackLeg")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Electro",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyElectro")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Fishman Karate",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyFishmanKarate")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy DragonClaw",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "2")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Superhuman",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuySuperhuman")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Death Step",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyDeathStep")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Sharkman Karate",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy ElectricClaw",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyElectricClaw")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy DragonTalon",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyDragonTalon")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Godhuman",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyGodhuman")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy SanguineArt",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuySanguineArt")
-		end
-	})
-
-	Tabs.Shop:AddSection("Accessory")
-	Tabs.Shop:AddButton({
-		Title = "Buy Tomoe Ring",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Tomoe Ring")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Black Cape",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Black Cape")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Swordsman Hat",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Swordsman Hat")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Bizarre Rifle",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("Ectoplasm", "Buy", 1)
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Ghoul Mask",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("Ectoplasm", "Buy", 2)
-		end
-	})
-
-	Tabs.Shop:AddSection("Accessory SeaEvent")
-	Tabs.Shop:AddButton({
-		Title = "Craft Dragonheart",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "Dragonheart");
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Craft Dragonstorm",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "Dragonstorm");
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Craft DinoHood",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "DinoHood");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft SharkTooth",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "SharkTooth");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft TerrorJaw",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "TerrorJaw");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft SharkAnchor",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "SharkAnchor");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft LeviathanCrown",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "LeviathanCrown");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft LeviathanShield",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "LeviathanShield");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft LeviathanBoat",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "LeviathanBoat");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft LegendaryScroll",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "LegendaryScroll");
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Craft MythicalScroll",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CraftItem", "Craft", "MythicalScroll");
-		end
-	})   
-
-	Tabs.Shop:AddSection("Weapon World1")
-	Tabs.Shop:AddButton({
-		Title = "Buy Cutlass",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Cutlass")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Katana",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Katana")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Iron Mace",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Iron Mace")
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Buy Duel Katana",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Duel Katana")
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Buy Triple Katana",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Triple Katana")
-		end
-	})  
-	Tabs.Shop:AddButton({
-		Title = "Buy Pipe",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Pipe")
-		end
-	})  
-	Tabs.Shop:AddButton({
-		Title = "Buy Dual-Headed Blade",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Dual-Headed Blade")
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Buy Bisento",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Bisento")
-		end
-	})  
-	Tabs.Shop:AddButton({
-		Title = "Buy Soul Cane",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Soul Cane")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Slingshot",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Slingshot")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Musket",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Musket")
-		end
-	})    
-	Tabs.Shop:AddButton({
-		Title = "Buy Dual Flintlock",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Dual Flintlock")
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Buy Flintlock",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Flintlock")
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Buy Refined Flintlock",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Refined Flintlock")
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Buy Cannon",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BuyItem", "Cannon")
-		end
-	}) 
-	Tabs.Shop:AddButton({
-		Title = "Buy Kabucha",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "Slingshot", "2")
-		end
-	})
-
-	Tabs.Shop:AddSection("Fragments shop")
-	Tabs.Shop:AddButton({
-		Title = "Buy Refund Stats",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "Refund", "2")
-		end
-	})
-	Tabs.Shop:AddButton({
-		Title = "Buy Reroll Race",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "Reroll", "2")
-		end
-	})   
-	Tabs.Shop:AddButton({
-		Title = "Buy Ghoul Race (2.5k)",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("Ectoplasm", " Change", 4)
-		end
-	})	
-	Tabs.Shop:AddButton({
-		Title = "Buy Cyborg Race (2.5k)",
-		Description = "",
-		Callback = function()
-			replicated.Remotes.CommF_:InvokeServer("CyborgTrainer", " Buy")
-		end
-	})
-	
+Tabs.Shop:AddParagraph({
+    Title = "Fighting Shop",
+    Content = string.rep("-", 21)
+})
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_Remote = Remotes:WaitForChild("CommF_")
+Tabs.Shop:AddButton({
+    Title = "Black Leg",
+    Callback = function()
+        local success, result = pcall(function()
+            return CommF_Remote:InvokeServer("BuyBlackLeg")
+        end)
+        if not success then            
+        end
+    end
+})
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_Remote = Remotes:WaitForChild("CommF_")
+Tabs.Shop:AddButton({
+    Title = "Fishman Karate",
+    Callback = function()
+        local success, result = pcall(function()
+            return CommF_Remote:InvokeServer("BuyFishmanKarate")
+        end)
+        if not success then            
+        end
+    end
+})
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_Remote = Remotes:WaitForChild("CommF_")
+Tabs.Shop:AddButton({
+    Title = "Electro",
+    Callback = function()
+        local success, result = pcall(function()
+            return CommF_Remote:InvokeServer("BuyElectro")
+        end)
+        if not success then            
+        end
+    end
+})
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_Remote = Remotes:WaitForChild("CommF_")
+Tabs.Shop:AddButton({
+    Title = "Dragon Breath",
+    Callback = function()
+        local success1, result1 = pcall(function()
+            return CommF_Remote:InvokeServer("BlackbeardReward", "DragonClaw", "1")
+        end)
+        if not success1 then
+            return
+        end
+        local success2, result2 = pcall(function()
+            return CommF_Remote:InvokeServer("BlackbeardReward", "DragonClaw", "2")
+        end)
+        if not success2 then
+            return
+        end
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "SuperHuman",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local CommF_ = ReplicatedStorage.Remotes.CommF_
+        CommF_:InvokeServer("BuySuperhuman")
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "Death Step",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local CommF_ = ReplicatedStorage.Remotes.CommF_
+        CommF_:InvokeServer("BuyDeathStep")
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "Sharkman Karate",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local CommF_ = ReplicatedStorage.Remotes.CommF_
+        CommF_:InvokeServer("BuySharkmanKarate", true)
+        wait(0.2)
+        CommF_:InvokeServer("BuySharkmanKarate")
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "Electric Claw",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local CommF_ = ReplicatedStorage.Remotes.CommF_
+        CommF_:InvokeServer("BuyElectricClaw")
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "Dragon Talon",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local CommF_ = ReplicatedStorage.Remotes.CommF_
+        CommF_:InvokeServer("BuyDragonTalon")
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "God Human",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local CommF_ = ReplicatedStorage.Remotes.CommF_
+        CommF_:InvokeServer("BuyGodhuman")
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "Sanguine Art",
+    Callback = function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local CommF_ = ReplicatedStorage.Remotes.CommF_
+        CommF_:InvokeServer("BuySanguineArt", true)
+        wait(0.2)
+        CommF_:InvokeServer("BuySanguineArt")
+    end
+})
+Tabs.Shop:AddParagraph({
+    Title = "Abilities Shop",
+    Content = string.rep("-", 21)
+})
+Tabs.Shop:AddButton({
+	Title = "Skyjump [ $10,000 Beli ]",
+	Callback = function()
+		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
+	end
+})
+Tabs.Shop:AddButton({
+	Title = "Buso Haki [ $25,000 Beli ]",
+	Callback = function()
+		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Buso")
+	end
+})
+Tabs.Shop:AddButton({
+	Title = "Observation haki [ $750,000 Beli ]",
+	Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("KenTalk","Buy")
+	end
+})
+Tabs.Shop:AddButton({
+	Title = "Soru [ $100,000 Beli ]",
+	Callback = function()
+		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Soru")
+	end
+})
+Tabs.Shop:AddParagraph({
+    Title = "Misc Shop",
+    Content = string.rep("-", 21)
+})
+Tabs.Shop:AddButton({
+     Title = "Buy Refund Stat (2500F)",
+     Callback = function()            
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","1")
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","2")
+     end
+})
+Tabs.Shop:AddButton({
+     Title = "Buy Reroll Race (3000F)",
+     Callback = function()            
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Reroll","1")
+	     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Reroll","2")
+     end
+})
+Tabs.Shop:AddButton({
+    Title = "Buy Ghoul Race",
+    Callback = function()
+        local args1 = {[1] = "Ectoplasm", [2] = "BuyCheck", [3] = 4}
+        local args2 = {[1] = "Ectoplasm", [2] = "Change", [3] = 4}
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args1))        
+        wait(0.5)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args2))
+    end
+})
+Tabs.Shop:AddButton({
+    Title = "Buy Cyborg Race (2500F)",
+    Callback = function()
+        if not isBuying then
+            isBuying = true
+            local args = {[1] = "CyborgTrainer", [2] = "Buy"}
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))                        
+            wait(0.5)
+            isBuying = false
+        end
+    end
+})
 
 local WalkOnWaterEnabled = false
 
