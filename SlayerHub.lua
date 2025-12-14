@@ -2496,7 +2496,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local AUTO_FARM_SPEED = 150 -- velocidade padrão para ir pros NPCs
+local AUTO_FARM_SPEED = 120 -- velocidade padrão para ir pros NPCs
 
 -- Função para mover suavemente até uma posição usando Tween
 local function TweenToPosition(hrp, targetPos, speed)
