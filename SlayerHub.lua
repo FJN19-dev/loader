@@ -2490,39 +2490,6 @@ task.spawn(function()
 end)
 
 
-local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local player = Players.LocalPlayer
-
-local SPEED = 100 -- velocidade definida
-
--- Função para mover suavemente até uma posição usando Tween
-local function MoveToPosition(targetCFrame, speed)
-    local character = player.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = character.HumanoidRootPart
-
-    local distance = (hrp.Position - targetCFrame.Position).Magnitude
-    local tweenTime = distance / (speed or SPEED)
-
-    local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-    local goal = {CFrame = targetCFrame}
-    local tween = TweenService:Create(hrp, tweenInfo, goal)
-    tween:Play()
-    tween.Completed:Wait()
-end
-
--- Função para permanecer acima do mob usando Tween
-local function StayAboveMob(mob, offset)
-    offset = offset or Vector3.new(0, 20, 0)
-    
-    while getgenv().AutoFarm and mob and mob.Parent and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 do
-        MoveToPosition(mob.HumanoidRootPart.CFrame * CFrame.new(offset), SPEED)
-        task.wait(0.03)
-    end
-end
 
 -- Toggle
 local Toggle = Tabs.Main:AddToggle("AutoLevelFarm", { 
@@ -2536,80 +2503,68 @@ Toggle:OnChanged(function(Value)
 end)
 
 spawn(function()
-    while task.wait(0.5) do
-        if getgenv().AutoFarm then
-            pcall(function()
-                CheckQuest()
-
-                local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if not humanoidRoot then return end
-
-                local questGui = player.PlayerGui.Main.Quest
-                local questVisible = questGui.Visible
-                local questTitle = questGui.Container.QuestTitle.Title.Text
-
-                -- Abandonar quest diferente
-                if not string.find(questTitle, NameMon) then
-                    getgenv().StartMagnet = false
-                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
-                end
-
-                -- Iniciar quest se não tiver
-                if not questVisible then
-                    getgenv().StartMagnet = false
-                    CheckQuest()
-
-                    local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
-                    if distance > 1500 then
-                        MoveToPosition(CFrameQuest * CFrame.new(0, 25, 5), SPEED)
-                    else
-                        MoveToPosition(CFrameQuest, SPEED)
+    local canRun = true
+    local debounceTime = 0.5
+    while wait(debounceTime) do
+        if getgenv().AutoFarm 
+            if canRun then
+                canRun = false
+                spawn(function()
+                    local player = game:GetService("Players").LocalPlayer
+                    local questTitle = player.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                    local questVisible = player.PlayerGui.Main.Quest.Visible
+                    local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                    if not string.find(questTitle, NameMon) then
+                        getgenv().StartMagnet = false
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
                     end
-
-                    if (humanoidRoot.Position - CFrameQuest.Position).Magnitude < 20 then
-                        ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
-
-                        if CFrameMon then
-                            MoveToPosition(CFrameMon, SPEED)
+                    if not questVisible then
+                        getgenv().StartMagnet = false
+                        CheckQuest()
+                        if BypassTP then
+                            local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
+                            if distance > 1500 then
+                                BTP(CFrameQuest * CFrame.new(0, 20, 5))
+                            elseif distance < 1500 then
+                                topos(CFrameQuest)
+                            end
+                        else
+                            topos(CFrameQuest)
                         end
-                    end
-                else
-                    -- Ir matar mobs
-                    for _, mob in pairs(Workspace.Enemies:GetChildren()) do
-                        if mob:FindFirstChild("HumanoidRootPart") and 
-                           mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and 
-                           mob.Name == Mon then
-
-                            getgenv().StartMagnet = true
-                            sethiddenproperty(player, "SimulationRadius", math.huge)
-
-                            spawn(function()
-                                StayAboveMob(mob, Vector3.new(0, 20, 0))
-                            end)
-
-                            repeat task.wait(0.1)
-                                AutoHaki()
-                                EquipWeapon(getgenv().SelectWeapon)
-
-                                -- Puxar outros mobs para cima do mob principal
-                                local EnemiesFolder = Workspace.Enemies
-                                for _, otherMob in pairs(EnemiesFolder:GetChildren()) do
-                                    if otherMob.Name == Mon 
-                                    and otherMob:FindFirstChild("Humanoid") 
-                                    and otherMob:FindFirstChild("HumanoidRootPart") 
-                                    and otherMob.Humanoid.Health > 0 
-                                    and otherMob ~= mob then
-                                        MoveToPosition(otherMob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0), SPEED)
+                        if (humanoidRoot.Position - CFrameQuest.Position).Magnitude <= 20 then
+                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
+                        end
+                    elseif questVisible then
+                        CheckQuest()
+                        local enemies = game:GetService("Workspace").Enemies:GetChildren()
+                        for _, v in pairs(enemies) do
+                            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+                                if v.Humanoid.Health > 0 and v.Name == Mon then
+                                    if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
+                                        repeat
+                                            task.wait(0.1)
+                                            AutoHaki()
+                                            EquipWeapon(getgenv().SelectWeapon)
+                                            PosMon = v.HumanoidRootPart.CFrame
+                                            topos(v.HumanoidRootPart.CFrame * Pos)
+                                            v.HumanoidRootPart.CanCollide = false
+                                            v.Humanoid.WalkSpeed = 0
+                                            v.Head.CanCollide = false
+                                            getgenv().StartMagnet = true
+                                            sethiddenproperty(player, "SimulationRadius", math.huge)
+                                        until not getgenv().AutoFarm or v.Humanoid.Health <= 0 or not v.Parent or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
+                                    else
+                                        getgenv().StartMagnet = false
+                                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
                                     end
                                 end
-
-                            until not getgenv().AutoFarm or mob.Humanoid.Health <= 0 or not mob.Parent or not questGui.Visible
-
-                            getgenv().StartMagnet = false
+                            end
                         end
                     end
-                end
-            end)
+                end)
+                task.wait(0.5)
+                canRun = true
+            end
         end
     end
 end)
