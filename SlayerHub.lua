@@ -2496,30 +2496,30 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local AUTO_FARM_SPEED = 120 -- velocidade padrão para ir pros NPCs
+local SPEED = 100 -- velocidade definida
 
 -- Função para mover suavemente até uma posição usando Tween
-local function TweenToPosition(hrp, targetPos, speed)
-    local distance = (hrp.Position - targetPos).Magnitude
-    if distance < 0.5 then return end
+local function MoveToPosition(targetCFrame, speed)
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = character.HumanoidRootPart
 
-    local tweenTime = distance / speed
+    local distance = (hrp.Position - targetCFrame.Position).Magnitude
+    local tweenTime = distance / (speed or SPEED)
+
     local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-    local goal = {CFrame = CFrame.new(targetPos)}
+    local goal = {CFrame = targetCFrame}
     local tween = TweenService:Create(hrp, tweenInfo, goal)
     tween:Play()
     tween.Completed:Wait()
 end
 
--- Função para permanecer acima do mob
+-- Função para permanecer acima do mob usando Tween
 local function StayAboveMob(mob, offset)
-    local character = player.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = character.HumanoidRootPart
     offset = offset or Vector3.new(0, 20, 0)
-
+    
     while getgenv().AutoFarm and mob and mob.Parent and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 do
-        hrp.CFrame = CFrame.new(mob.HumanoidRootPart.Position + offset)
+        MoveToPosition(mob.HumanoidRootPart.CFrame * CFrame.new(offset), SPEED)
         task.wait(0.03)
     end
 end
@@ -2561,16 +2561,16 @@ spawn(function()
 
                     local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
                     if distance > 1500 then
-                        TweenToPosition(humanoidRoot, CFrameQuest.Position + Vector3.new(0, 25, 5), 300)
+                        MoveToPosition(CFrameQuest * CFrame.new(0, 25, 5), SPEED)
                     else
-                        TweenToPosition(humanoidRoot, CFrameQuest.Position, AUTO_FARM_SPEED)
+                        MoveToPosition(CFrameQuest, SPEED)
                     end
 
                     if (humanoidRoot.Position - CFrameQuest.Position).Magnitude < 20 then
                         ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
 
                         if CFrameMon then
-                            TweenToPosition(humanoidRoot, CFrameMon.Position, AUTO_FARM_SPEED)
+                            MoveToPosition(CFrameMon, SPEED)
                         end
                     end
                 else
@@ -2580,7 +2580,6 @@ spawn(function()
                            mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and 
                            mob.Name == Mon then
 
-                            -- Ativa ataque e magnetismo
                             getgenv().StartMagnet = true
                             sethiddenproperty(player, "SimulationRadius", math.huge)
 
@@ -2600,7 +2599,7 @@ spawn(function()
                                     and otherMob:FindFirstChild("HumanoidRootPart") 
                                     and otherMob.Humanoid.Health > 0 
                                     and otherMob ~= mob then
-                                        TweenToPosition(otherMob.HumanoidRootPart, mob.HumanoidRootPart.Position + Vector3.new(0, 20, 0), AUTO_FARM_SPEED)
+                                        MoveToPosition(otherMob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0), SPEED)
                                     end
                                 end
 
