@@ -1855,40 +1855,6 @@ spawn(function()
     end
 end)	        
 
-
----test
-local AttackList = {"Slow", "Normal", "Fast"}
-local FastAttackSelected = "Normal"
-local FastAttackDelay = 0.125
-local FastAttack = false
-
--- Dropdown para selecionar a velocidade de ataque
-local Dropdown = Tabs.Main:AddDropdown("Velocidade de Ataque", {
-    Title = "Selecione a Velocidade de Ataque",
-    Values = AttackList,
-    Multi = false,  -- O usuÃ¡rio sÃ³ pode selecionar uma opÃ§Ã£o
-    Default = 2,  -- PadrÃ£o Ã© "Normal"
-    Callback = function(Value)
-        FastAttackSelected = Value
-        if FastAttackSelected == "Fast" then
-            FastAttackDelay = 0.029
-        elseif FastAttackSelected == "Normal Fast" then
-            FastAttackDelay = 2
-        elseif FastAttackSelected == "Super fast Atack" then
-            FastAttackDelay = 0.0005
-        end
-    end
-})
-
--- Toggle para ativar/desativar o Fast Attack
-local Toggle = Tabs.Main:AddToggle("Fast Attack", {
-    Title = "Fast Attack",
-    Default = FastAttack,
-    Callback = function(Value)
-        FastAttack = Value
-    end
-})
-
 Dropdown = Tabs.Main:AddDropdown("DropdownFarm", {
     Title = "Selecionar Armas",
     Values = {"Melee","Sword","Blox Fruit"},
@@ -1921,7 +1887,7 @@ task.spawn(function()
 end)
 
 Dropdown = Tabs.Main:AddDropdown("DropdownFarm", {
-    Title = "Select Method Farm",
+    Title = "Selecionar Modo",
     Values = {"Farm Level", "Farm Bone", "Farm Katakuri"},
     Multi = false,
 })
@@ -2182,6 +2148,516 @@ Toggle:OnChanged(function(Value)
     StopTween(getgenv().AutoFarm)
 end)
 
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+
+-- Toggle Auto Farm Sky Piea
+local ToggleMobAura = Tabs.Main:AddToggle("ToggleMobAura", {Title = "Auto Farm Sky Piea 1-75", Default = false})
+ToggleMobAura:OnChanged(function(Value)
+    _G.AutoFarmSkyPiea = Value
+end)
+Options.ToggleMobAura:SetValue(false)
+
+local SafeHeight = 40 -- altura segura acima do mob
+local OffsetBehind = Vector3.new(0, 0, -4) -- ligeiramente atrás do mob
+
+-- Função principal
+spawn(function()
+    while task.wait(0.03) do -- atualiza ~30 vezes por segundo
+        if _G.AutoFarmSkyPiea then
+            pcall(function()
+                local Player = Players.LocalPlayer
+                local Char = Player.Character or Player.CharacterAdded:Wait()
+                local HRP = Char:WaitForChild("HumanoidRootPart")
+                local Humanoid = Char:WaitForChild("Humanoid")
+                local MyLevel = Player.Data.Level.Value
+
+                -- Define o alvo e spawn baseado no nível
+                local Target
+                local SpawnPosition
+                if MyLevel >= 1 and MyLevel <= 50 then
+                    Target = "Sky Bandit"
+                    SpawnPosition = Vector3.new(-4953.207, 295.744, -2899.229)
+                elseif MyLevel > 50 and MyLevel <= 75 then
+                    Target = "Shanda"
+                    SpawnPosition = Vector3.new(-7678.48974609375, 5566.40380859375, -497.2156066894531)
+                else
+                    return
+                end
+
+                local EnemiesFolder = workspace:FindFirstChild("Enemies")
+                if not EnemiesFolder then return end
+
+                -- Verifica mobs próximos
+                local mobs = {}
+                for _, mob in pairs(EnemiesFolder:GetChildren()) do
+                    if mob.Name == Target and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                        table.insert(mobs, mob)
+                    end
+                end
+
+                if #mobs == 0 then
+                    -- Vai para spawn se nenhum mob presente
+                    Humanoid.PlatformStand = true
+                    HRP.CFrame = CFrame.new(SpawnPosition + Vector3.new(0, SafeHeight, 0))
+                else
+                    -- Ataca o primeiro mob da lista
+                    local mob = mobs[1]
+                    local mobHRP = mob.HumanoidRootPart
+                    repeat
+                        task.wait(0.03)
+
+                        -- Mantém altura segura + deslocamento
+                        HRP.CFrame = mobHRP.CFrame * CFrame.new(OffsetBehind + Vector3.new(0, SafeHeight, 0))
+                        Humanoid.PlatformStand = true -- mantém estável
+
+                        -- Ajustes do mob principal
+                        mobHRP.CanCollide = false
+                        mob.Humanoid.WalkSpeed = 0
+                        mob.Humanoid.JumpPower = 0
+
+                        -- PULL: puxa outros mobs do mesmo tipo
+                        for _, otherMob in pairs(EnemiesFolder:GetChildren()) do
+                            if otherMob.Name == Target and otherMob:FindFirstChild("Humanoid") and otherMob:FindFirstChild("HumanoidRootPart") and otherMob.Humanoid.Health > 0 and otherMob ~= mob then
+                                pcall(function()
+                                    otherMob.HumanoidRootPart.CFrame = mobHRP.CFrame
+                                end)
+                            end
+                        end
+
+                        -- Ataque
+                        VirtualUser:ClickButton1(Vector2.new(), workspace.CurrentCamera.CFrame)
+                    until not _G.AutoFarmSkyPiea or not mob.Parent or mob.Humanoid.Health <= 0
+
+                    -- Volta ao normal após mob morrer
+                    Humanoid.PlatformStand = false
+                end
+            end)
+        end
+    end
+end)
+
+
+local MaterialList = {}
+if World1 then
+    MaterialList = {"Leather + Scrap Metal", "Angel Wings", "Magma Ore", "Fish Tail"}
+elseif World2 then
+    MaterialList = {"Leather + Scrap Metal", "Radioactive Material", "Ectoplasm", "Mystic Droplet", "Magma Ore", "Vampire Fang"}
+elseif World3 then
+    MaterialList = {"Leather + Scrap Metal", "Demonic Wisp", "Conjured Cocoa", "Dragon Scale", "Gunpowder", "Fish Tail", "Mini Tusk"}
+end
+MaterialListMon = Tabs.Main:AddDropdown("MaterialListMon", {
+    Title = "Select Material",
+    Values = MaterialList,
+    Multi = false
+})
+MaterialListMon:OnChanged(function(Value)
+    getgenv().SelectMaterial = Value
+end)
+Toggle = Tabs.Main:AddToggle("Toggle", {Title = "Farm Material", Default = false})
+Toggle:OnChanged(function(Value)
+    getgenv().AutoMaterial = Value
+    if not Value then StopTween() end
+end)
+spawn(function()
+    local function processEnemy(v, EnemyName)
+        if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+            if v.Name == EnemyName then
+                repeat
+                    task.wait(0.1)
+                    AutoHaki()
+                    EquipWeapon(getgenv().SelectWeapon)
+                    v.HumanoidRootPart.CanCollide = false
+                    v.Humanoid.WalkSpeed = 0
+                    v.Head.CanCollide = false
+                    topos(v.HumanoidRootPart.CFrame * Pos)
+                    getgenv().StartMagnet = true
+                    MonFarm = v.Name
+                    PosMon = v.HumanoidRootPart.CFrame
+                until not getgenv().AutoMaterial or not v.Parent or v.Humanoid.Health <= 0
+                UnEquipWeapon(getgenv().SelectWeapon)
+            end
+        end
+    end
+    local function handleEnemySpawns()
+        for _, v in pairs(game:GetService("Workspace")["_WorldOrigin"].EnemySpawns:GetChildren()) do
+            for _, EnemyName in ipairs(MMon) do
+                if string.find(v.Name, EnemyName) then
+                    if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.Position).Magnitude >= 10 then
+                        topos(v.CFrame * Pos)
+                    end
+                end
+            end
+        end
+    end
+    while task.wait(0.1) do
+        if getgenv().AutoMaterial then
+            pcall(function()
+                if getgenv().SelectMaterial then
+                    MaterialMon(getgenv().SelectMaterial)
+                    topos(MPos)
+                end
+                for _, EnemyName in ipairs(MMon) do
+                    for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        processEnemy(v, EnemyName)
+                    end
+                end
+                handleEnemySpawns()
+            end)
+        end
+    end
+end)
+
+Slider = Tabs.Main:AddSlider("Slider", {
+     Title = "Select Health [ % ]",
+     Default = 30,
+     Min = 0,
+     Max = 100,
+     Rounding = 5,
+     Callback = function(Value)
+         getgenv().Kill_At = Value
+    end
+})
+Dropdown = Tabs.Main:AddDropdown("DropdownFarm", {
+    Title = "Select Method Farm Mastery",
+    Values = {"Blox Fruit", "Gun"},
+    Multi = false,
+})
+Dropdown:SetValue("Blox Fruit")
+Dropdown:OnChanged(function(Value)
+FarmMode2 = Value
+end)
+spawn(function()
+    while task.wait() do
+        if FarmMode2 == "Blox Fruit" and getgenv().MasteryFarm then
+            pcall(function()
+                QuestTitle = game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                if not string.find(QuestTitle, NameMon) then
+                    UseSkill = false
+                    Skillaimbot = false
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+                end
+                if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false then
+                    UseSkill = false
+                    CheckQuest()
+                    if BypassTP then
+                        if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - CFrameQuest.Position).Magnitude > 2000 then
+                            BTP(CFrameQuest)
+                        elseif (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - CFrameQuest.Position).Magnitude <= 2000 then
+                            topos(CFrameQuest)
+                        else
+                            topos(CFrameQuest)
+                        end
+                    end
+                    repeat task.wait()
+                        topos(CFrameQuest)
+                    until (CFrameQuest.Position - game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 3 or not getgenv().MasteryFarm
+                    if (CFrameQuest.Position - game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 5 then
+                        wait(0.1)
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
+                        wait(0.1)
+                    end
+                elseif game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == true then
+                    CheckQuest()
+                    if game:GetService("Workspace").Enemies:FindFirstChild(Mon) then
+                        for i, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                                if v.Name == Mon then
+                                    if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
+                                        HealthMs = v.Humanoid.MaxHealth * getgenv().Kill_At / 100
+                                        repeat task.wait()
+                                            if v.Humanoid.Health <= HealthMs then
+                                                AutoHaki()
+                                                EquipWeapon(game:GetService("Players").LocalPlayer.Data.DevilFruit.Value)
+                                                topos(v.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0))
+                                                v.HumanoidRootPart.CanCollide = false
+                                                PosMonMasteryFruit = v.HumanoidRootPart.CFrame
+                                                MonFarm = v.Name
+                                                PosMon = v.HumanoidRootPart.CFrame
+                                                v.Humanoid.WalkSpeed = 0
+                                                v.Head.CanCollide = false
+                                                UseSkill = true
+                                                Skillaimbot = true
+                                            else
+                                                UseSkill = false
+                                                Skillaimbot = false
+                                                AutoHaki()
+                                                EquipWeapon(getgenv().SelectWeapon)
+                                                MonFarm = v.Name
+                                                PosMon = v.HumanoidRootPart.CFrame
+                                                topos(v.HumanoidRootPart.CFrame * Pos)
+                                                v.HumanoidRootPart.CanCollide = false
+                                                PosMonMasteryFruit = v.HumanoidRootPart.CFrame
+                                                v.Humanoid.WalkSpeed = 0
+                                                v.Head.CanCollide = false
+                                            end
+                                            getgenv().StartMagnet = true
+                                        until not getgenv().MasteryFarm or v.Humanoid.Health <= 0 or not v.Parent or game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false
+                                    else
+                                        UseSkill = false
+                                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+                                    end
+                                end
+                            end
+                        end
+                    else
+                        topos(CFrameMon)
+                        UseSkill = false
+                        Skillaimbot = false
+                        Mob = game:GetService("ReplicatedStorage"):FindFirstChild(Mon)
+
+                        if Mob then
+                            topos(Mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, 10))
+                        else
+                            if game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame.Y <= 1 then
+                                game:GetService("Players").LocalPlayer.Character.Humanoid.Jump = true
+                                task.wait()
+                                game:GetService("Players").LocalPlayer.Character.Humanoid.Jump = false
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+spawn(function()
+    while task.wait() do
+        if UseSkill then
+            pcall(function()
+                CheckQuest()
+                for i, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    if game:GetService("Players").LocalPlayer.Character:FindFirstChild(game:GetService("Players").LocalPlayer.Data.DevilFruit.Value) then
+                        MasBF = game:GetService("Players").LocalPlayer.Character[game:GetService("Players").LocalPlayer.Data.DevilFruit.Value].Level.Value
+                    elseif game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(game:GetService("Players").LocalPlayer.Data.DevilFruit.Value) then
+                        MasBF = game:GetService("Players").LocalPlayer.Backpack[game:GetService("Players").LocalPlayer.Data.DevilFruit.Value].Level.Value
+                    end
+                    if game:GetService("Players").LocalPlayer.Character:FindFirstChild(game:GetService("Players").LocalPlayer.Data.DevilFruit.Value) then
+                        if getgenv().SkillZ then
+                            local args = {
+                                [1] = PosMonMasteryFruit.Position
+                            }
+                            game:GetService("Players").LocalPlayer.Character[game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Tool").Name].RemoteEvent:FireServer(unpack(args))
+                            game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
+                            game:GetService("VirtualInputManager"):SendKeyEvent(false, "Z", false, game)
+                        end
+                        if getgenv().SkillX then
+                            local args = {
+                                [1] = PosMonMasteryFruit.Position
+                            }
+                            game:GetService("Players").LocalPlayer.Character[game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Tool").Name].RemoteEvent:FireServer(unpack(args))
+                            game:GetService("VirtualInputManager"):SendKeyEvent(true, "X", false, game)
+                            game:GetService("VirtualInputManager"):SendKeyEvent(false, "X", false, game)
+                        end
+                        if getgenv().SkillC then
+                            local args = {
+                                [1] = PosMonMasteryFruit.Position
+                            }
+                            game:GetService("Players").LocalPlayer.Character[game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Tool").Name].RemoteEvent:FireServer(unpack(args))
+                            game:GetService("VirtualInputManager"):SendKeyEvent(true, "C", false, game)
+                            game:GetService("VirtualInputManager"):SendKeyEvent(false, "C", false, game)
+                        end
+                        if getgenv().SkillV then
+                            local args = {
+                                [1] = PosMonMasteryFruit.Position
+                            }
+                            game:GetService("Players").LocalPlayer.Character[game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Tool").Name].RemoteEvent:FireServer(unpack(args))
+                            game:GetService("VirtualInputManager"):SendKeyEvent(true, "V", false, game)
+                            game:GetService("VirtualInputManager"):SendKeyEvent(false, "V", false, game)
+                        end
+                        if getgenv().SkillF then
+                            local args = {
+                                [1] = PosMonMasteryFruit.Position
+                            }
+                            game:GetService("Players").LocalPlayer.Character[game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Tool").Name].RemoteEvent:FireServer(unpack(args))
+                            game:GetService("VirtualInputManager"):SendKeyEvent(true, "F", false, game)
+                            game:GetService("VirtualInputManager"):SendKeyEvent(false, "F", false, game)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+spawn(function()
+    game:GetService("RunService").RenderStepped:Connect(function()
+        pcall(function()
+            if UseSkill then
+                for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Notifications:GetChildren()) do
+                    if v.Name == "NotificationTemplate" then
+                        if string.find(v.Text, "Skill locked!") then
+                            v:Destroy()
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+end)
+spawn(function()
+    pcall(function()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if UseSkill then
+                local args = {
+                    [1] = PosMonMasteryFruit.Position
+                }
+                game:GetService("Players").LocalPlayer.Character[game:GetService("Players").LocalPlayer.Data.DevilFruit.Value].RemoteEvent:FireServer(unpack(args))
+            end
+        end)
+    end)
+end)    
+spawn(function()
+    pcall(function()
+        while task.wait() do
+            if FarmMode2 == "Gun" and getgenv().MasteryFarm then
+                QuestTitle = game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                if not string.find(QuestTitle, NameMon) then                      
+                    Skillaimbot = false          
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+                end
+                if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false then
+                    CheckQuest()
+                        if BypassTP then
+                            if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - CFrameQuest.Position).Magnitude > 2000 then
+						        BTP(CFrameQuest)
+                            elseif (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - CFrameQuest.Position).Magnitude <= 2000 then
+                                topos(CFrameQuest)
+                            else
+                                topos(CFrameQuest)
+                            end
+                        else                                 
+                             topos(CFrameQuest)
+                        end
+                    if (CFrameQuest.Position - game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 10 then
+                        task.wait(1.1)
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
+                    end
+                elseif game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == true then
+                    CheckQuest()
+                    if game:GetService("Workspace").Enemies:FindFirstChild(Mon) then
+                        pcall(function()
+                            for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                                if v.Name == Mon then
+                                    repeat task.wait()
+                                        if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
+                                            HealthMin = v.Humanoid.MaxHealth * getgenv().Kill_At/100
+                                            if v.Humanoid.Health <= HealthMin then
+                                                EquipWeapon(SelectWeaponGun)
+                                                Skillaimbot = true
+                                                AimSkill = v.Engine.CFrame * CFrame.new(0, -15, 0)
+                                                AimBotSkillPosition = AimSkill.Position
+                                                MonFarm = v.Name                
+                                                PosMon = v.HumanoidRootPart.CFrame
+                                                topos(v.HumanoidRootPart.CFrame * CFrame.new(0,0,10))
+                                                v.Humanoid.WalkSpeed = 0
+                                                v.HumanoidRootPart.CanCollide = false
+                                                v.HumanoidRootPart.Size = Vector3.new(2,2,1)
+                                                v.Head.CanCollide = false                                                
+                                                local args = {
+                                                    [1] = v.HumanoidRootPart.Position,
+                                                    [2] = v.HumanoidRootPart
+                                                }
+                                                game:GetService("Players").LocalPlayer.Character[SelectWeaponGun].RemoteFunctionShoot:InvokeServer(unpack(args))
+                                                task.wait(.1)
+                                                game:GetService("VirtualInputManager"):SendKeyEvent(true,122,false,game.Players.LocalPlayer.Character.HumanoidRootPart)
+                                                game:GetService("VirtualInputManager"):SendKeyEvent(false,122,false,game.Players.LocalPlayer.Character.HumanoidRootPart)
+                                                task.wait(.1)
+                                                game:GetService("VirtualInputManager"):SendKeyEvent(true,120,false,game.Players.LocalPlayer.Character.HumanoidRootPart)
+                                                game:GetService("VirtualInputManager"):SendKeyEvent(false,120,false,game.Players.LocalPlayer.Character.HumanoidRootPart)
+                                            else
+                                                AutoHaki()
+                                                EquipWeapon(getgenv().SelectWeapon)
+                                                MonFarm = v.Name                
+                                                PosMon = v.HumanoidRootPart.CFrame
+                                                v.Humanoid.WalkSpeed = 0
+                                                v.HumanoidRootPart.CanCollide = false
+                                                v.Head.CanCollide = false    
+                                                topos(v.HumanoidRootPart.CFrame * Pos)
+                                                game:GetService'VirtualUser':CaptureController()
+                                                game:GetService'VirtualUser':Button1Down(Vector2.new(1280, 672))
+                                            end
+                                            getgenv().StartMagnet = true 
+                                            PosMonMasteryGun = v.HumanoidRootPart.CFrame
+                                        else
+                                            getgenv().StartMagnet = true 
+                                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+                                        end
+                                    until v.Humanoid.Health <= 0 or not getgenv().MasteryFarm or game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false
+                                end
+                            end
+                        end)
+                    else
+                       topos(CFrameMon)
+                        Mob = game:GetService("ReplicatedStorage"):FindFirstChild(Mon) 
+                        if Mob then
+                            topos(Mob.HumanoidRootPart.CFrame * CFrame.new(0,0,10))
+                        else
+                            if game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame.Y <= 1 then
+                                game:GetService("Players").LocalPlayer.Character.Humanoid.Jump = true
+                                task.wait()
+                                game:GetService("Players").LocalPlayer.Character.Humanoid.Jump = false
+                            end
+                        end
+                    end 
+                end
+            end
+        end
+    end)
+end)
+spawn(function()
+    pcall(function()
+        if getgenv().MasteryFarm then
+            while task.wait() do
+                for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if v:IsA("Tool") then
+                        if v:FindFirstChild("RemoteFunctionShoot") then
+                            SelectWeaponGun = v.Name
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end)
+local plr = game:GetService("Players").LocalPlayer
+spawn(function()
+     pcall(function()
+         while task.wait() do
+            for i,v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do  
+                if v:IsA("Tool") then
+                    if v:FindFirstChild("RemoteFunctionShoot") then 
+                        SelectWeaponGun = v.Name
+                    end
+                end
+            end
+        end
+    end)
+end)
+Toggle = Tabs.Main:AddToggle("Toggle", { Title = "Auto Farm Mastery", Default = false })
+Toggle:OnChanged(function(Value)
+    getgenv().MasteryFarm = Value
+    StopTween(getgenv().MasteryFarm)
+end)
+Toggle = Tabs.Main:AddToggle("Toggle", {Title = "Skill Z", Default = true })
+Toggle:OnChanged(function(Value)
+    getgenv().SkillZ = Value
+end)
+Toggle = Tabs.Main:AddToggle("Toggle", {Title = "Skill X", Default = false })
+Toggle:OnChanged(function(Value)
+    getgenv().SkillX = Value
+end)
+Toggle = Tabs.Main:AddToggle("Toggle", {Title = "Skill C", Default = false })
+Toggle:OnChanged(function(Value)
+    getgenv().SkillC = Value
+end)
+Toggle = Tabs.Main:AddToggle("Toggle", {Title = "Skill V", Default = false })
+Toggle:OnChanged(function(Value)
+    getgenv().SkillV = Value
+end)
+Toggle = Tabs.Main:AddToggle("Toggle", {Title = "Skill F", Default = false })
+Toggle:OnChanged(function(Value)
+    getgenv().SkillF = Value
+end)
 
  sex = {
     "WildDares",
