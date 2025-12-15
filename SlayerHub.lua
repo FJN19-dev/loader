@@ -2495,7 +2495,7 @@ local Dropdown = Main:AddDropdown({
     Description = "",
     Options = {"Melee","Sword","Blox Fruit"},
     Default = "Melee",
-    Flag = "",
+    Flag = "SelectWeapon",
     Callback = function(Value)
         getgenv().SelectWeapon = Value
     end
@@ -2533,7 +2533,7 @@ local Dropdown = Main:AddDropdown({
     Description = "",
     Options = {"Farm Level", "Farm Bone", "Farm Katakuri"},
     Default = "Farm Level",
-    Flag = "",
+    Flag = "SelectFarmMode",
     Callback = function(Value)
         FarmMode = Value
     end
@@ -4599,13 +4599,16 @@ spawn(function()
 		end
 	end
 end)
-getgenv().FastAttack = false
+getgenv().FastAttack = true -- igual ao Default
+
 local Toggle1 = Settings:AddToggle({
-  Name = "Fast Attack",
-  Description = "",
-  Default = true 
+    Name = "Fast Attack",
+    Description = "",
+    Default = true
 })
+
 local FastAttackTask
+
 local function FastAttackLoop()
     while getgenv().FastAttack do
         if type(AttackNoCoolDown) == "function" then
@@ -4614,82 +4617,106 @@ local function FastAttackLoop()
         task.wait(0.1)
     end
 end
+
+-- inicia automaticamente
+FastAttackTask = task.spawn(FastAttackLoop)
+
 Toggle1:Callback(function(Value)
     getgenv().FastAttack = Value
+
     if Value and not FastAttackTask then
         FastAttackTask = task.spawn(FastAttackLoop)
-    end
-    if not Value and FastAttackTask then
+    elseif not Value and FastAttackTask then
         FastAttackTask = nil
     end
 end)
 
+getgenv().BringMonster = true -- sincroniza com Default
+
 local Toggle1 = Settings:AddToggle({
-  Name = "Bring Mob",
-  Description = "",
-  Default = true 
+    Name = "Bring Mob",
+    Description = "",
+    Default = true
 })
+
 Toggle1:Callback(function(Value)
-    getgenv().BringMonster = Value 
+    getgenv().BringMonster = Value
 end)
-local RunService = game:GetService("RunService")
+
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
-spawn(function()
+
+task.spawn(function()
     while task.wait(0.1) do
+        if not getgenv().BringMonster then
+            continue
+        end
+
         pcall(function()
             CheckQuest()
+
             local enemies = Workspace.Enemies:GetChildren()
             local MonsterCount = 0
+
             for _, enemy in ipairs(enemies) do
                 if MonsterCount >= 2 then
                     break
-                end                
-                if getgenv().BringMonster and enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") then
-                    local humanoid = enemy:FindFirstChild("Humanoid")
-                    local rootPart = enemy:FindFirstChild("HumanoidRootPart")
-                    if humanoid and rootPart and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        local distance = (rootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                        if getgenv().StartMagnet and (enemy.Name == MonFarm or enemy.Name == Mon) and humanoid.Health > 0 and distance <= 350 then
-                            if enemy.Name == "Factory Staff" and PosMon and (rootPart.Position - PosMon.Position).Magnitude <= 5000 then
-                                if rootPart.Parent then
-                                    rootPart.CanCollide = false
-                                    rootPart.Size = Vector3.new(60, 60, 60)
-                                    rootPart.CFrame = PosMon
-                                    enemy.Head.CanCollide = false
-                                    local animator = humanoid:FindFirstChild("Animator")
-                                    if animator then
-                                        pcall(function()
-                                            animator:Destroy()
-                                        end)
-                                    end
-                                    sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-                                    MonsterCount = MonsterCount + 1
-                                end
-                            elseif (enemy.Name == MonFarm or enemy.Name == Mon) and PosMon and (rootPart.Position - PosMon.Position).Magnitude <= 4500 then
-                                if rootPart.Parent then
-                                    rootPart.CanCollide = false
-                                    rootPart.Size = Vector3.new(60, 60, 60)
-                                    rootPart.CFrame = PosMon
-                                    enemy.Head.CanCollide = false
-                                    local animator = humanoid:FindFirstChild("Animator")
-                                    if animator then
-                                        pcall(function()
-                                            animator:Destroy()
-                                        end)
-                                    end
-                                    sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-                                    MonsterCount = MonsterCount + 1
-                                end
-                            end
+                end
+
+                if enemy:FindFirstChild("Humanoid")
+                    and enemy:FindFirstChild("HumanoidRootPart")
+                    and LocalPlayer.Character
+                    and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+
+                    local humanoid = enemy.Humanoid
+                    local rootPart = enemy.HumanoidRootPart
+
+                    local distance = (rootPart.Position -
+                        LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+
+                    if getgenv().StartMagnet
+                        and (enemy.Name == MonFarm or enemy.Name == Mon)
+                        and humanoid.Health > 0
+                        and distance <= 350
+                        and PosMon then
+
+                        -- Factory Staff (caso especial)
+                        if enemy.Name == "Factory Staff"
+                            and (rootPart.Position - PosMon.Position).Magnitude <= 5000 then
+
+                            rootPart.CanCollide = false
+                            rootPart.Size = Vector3.new(60, 60, 60)
+                            rootPart.CFrame = PosMon
+                            enemy.Head.CanCollide = false
+
+                        -- Normal
+                        elseif (rootPart.Position - PosMon.Position).Magnitude <= 4500 then
+                            rootPart.CanCollide = false
+                            rootPart.Size = Vector3.new(60, 60, 60)
+                            rootPart.CFrame = PosMon
+                            enemy.Head.CanCollide = false
+                        else
+                            continue
                         end
+
+                        -- Remove animação
+                        local animator = humanoid:FindFirstChild("Animator")
+                        if animator then
+                            pcall(function()
+                                animator:Destroy()
+                            end)
+                        end
+
+                        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+                        MonsterCount += 1
                     end
                 end
             end
         end)
     end
 end)
+
 local Toggle1 = Settings:AddToggle({
   Name = "Spin Position",
   Description = "",
@@ -4744,45 +4771,54 @@ spawn(function()
         end
     end
 end)
+getgenv().ResetFlags = true -- sincroniza com Default
+
 local Toggle1 = Settings:AddToggle({
-  Name = "Anti Cheat Farming",
-  Description = "",
-  Default = true 
+    Name = "Anti Cheat Farming",
+    Description = "",
+    Default = true
 })
+
 Toggle1:Callback(function(Value)
     getgenv().ResetFlags = Value
 end)
-spawn(function()
+
+task.spawn(function()
     while task.wait(5) do
+        if not getgenv().ResetFlags then
+            continue
+        end
+
         pcall(function()
-            if getgenv().ResetFlags then
-                local player = game:GetService("Players").LocalPlayer                
-                for _, v in pairs(player.Character:GetDescendants()) do
-                    if v:IsA("LocalScript") then
-                        local scriptsToRemove = {
-                            "General", "Shiftlock", "FallDamage", "4444", 
-                            "CamBob", "JumpCD", "Looking", "Run"
-                        }
-                        if table.find(scriptsToRemove, v.Name) then
-                            v:Destroy()
-                        end
-                    end
+            local player = game:GetService("Players").LocalPlayer
+            local character = player.Character
+            if not character then return end
+
+            local scriptsChar = {
+                "General", "Shiftlock", "FallDamage", "4444",
+                "CamBob", "JumpCD", "Looking", "Run"
+            }
+
+            for _, v in pairs(character:GetDescendants()) do
+                if v:IsA("LocalScript") and table.find(scriptsChar, v.Name) then
+                    v:Destroy()
                 end
-                for _, v in pairs(player.PlayerScripts:GetDescendants()) do
-                    if v:IsA("LocalScript") then
-                        local scriptsToRemove = {
-                            "RobloxMotor6DBugFix", "Clans", "Codes", "CustomForceField",
-                            "MenuBloodSp", "PlayerList"
-                        }
-                        if table.find(scriptsToRemove, v.Name) then
-                            v:Destroy()
-                        end
-                    end
+            end
+
+            local scriptsPlayer = {
+                "RobloxMotor6DBugFix", "Clans", "Codes", "CustomForceField",
+                "MenuBloodSp", "PlayerList"
+            }
+
+            for _, v in pairs(player.PlayerScripts:GetDescendants()) do
+                if v:IsA("LocalScript") and table.find(scriptsPlayer, v.Name) then
+                    v:Destroy()
                 end
             end
         end)
     end
 end)
+
 
 local Toggle1 = Settings:AddToggle({
   Name = "Auto Melee",
