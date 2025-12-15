@@ -2970,8 +2970,8 @@ Shop:AddButton({"Buy Refund Stat (2500F)", function()
 end})
 
 Shop:AddButton({"Buy Reroll Race (3000F)", function()
-         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","1")
-         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","2")
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Reroll","1")
+	     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Reroll","2")
 end})
 
 Shop:AddButton({"Buy Ghoul Race", function()
@@ -2991,3 +2991,183 @@ Shop:AddButton({"Buy Cyborg Race (2500F)", function()
             isBuying = false
         end
 end})
+
+local WalkOnWaterEnabled = false
+
+local WalkOnWater = Misc:AddToggle({
+  Name = "Walk On Water",
+  Description = "",
+  Default = false 
+})
+WalkOnWater:Callback(function(v)
+    WalkOnWaterEnabled = v
+
+    if not v then
+        if workspace:FindFirstChild("WalkOnWaterPlatform") then
+            workspace.WalkOnWaterPlatform:Destroy()
+        end
+    end
+end)
+
+local RunService = game:GetService("RunService")
+local Player = game.Players.LocalPlayer
+
+RunService.RenderStepped:Connect(function()
+    if not WalkOnWaterEnabled then return end
+
+    -- Cria plataforma caso não exista
+    local Platform = workspace:FindFirstChild("WalkOnWaterPlatform")
+    if not Platform then
+        Platform = Instance.new("Part")
+        Platform.Name = "WalkOnWaterPlatform"
+        Platform.Size = Vector3.new(12, 1, 12)
+        Platform.Anchored = true
+        Platform.CanCollide = true
+        Platform.Transparency = 1
+        Platform.Parent = workspace
+    end
+
+    local char = Player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    -- ALTURA REAL da água do Blox Fruits
+    local WaterY = 0.5
+
+    -- Move a plataforma para baixo do player (na água)
+    Platform.Position = Vector3.new(hrp.Position.X, WaterY, hrp.Position.Z)
+end)
+
+Misc:AddButton({"Stop Tween", function()
+        StopTween()
+end})
+
+Misc:AddButton({"Awakening Menu", function()
+        game:GetService("Players").LocalPlayer.PlayerGui.Main.AwakeningToggler.Visible = true
+end})
+
+Misc:AddButton({"Color Haki Menu", function()
+		game.Players.localPlayer.PlayerGui.Main.Colors.Visible = true
+end})
+
+local Section = Misc:AddSection({"Team"})
+
+Misc:AddButton({"Join Pirates Team", function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam","Pirates") 
+end})
+
+Misc:AddButton({"Join Marines Team", function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam","Marines") 
+end})
+
+Misc:AddButton({"Open Title", function()
+        local args = {"getTitles"}
+        local success, result = pcall(function()
+            return game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+        end)
+        if success then
+            game.Players.LocalPlayer.PlayerGui.Main.Titles.Visible = true
+        end
+end})
+
+local lastButtonPressTime = 0
+local buttonCooldown = 2
+Misc:AddButton({"Open Color", function()
+        if tick() - lastButtonPressTime >= buttonCooldown then
+            lastButtonPressTime = tick()
+            local colorsGui = game.Players.LocalPlayer.PlayerGui.Main:FindFirstChild("Colors")
+            if colorsGui then
+                colorsGui.Visible = true
+            end
+        end
+end})
+
+Misc:AddButton({"Boost FPS", function()
+        FPSBooster()
+end})
+
+function FPSBooster()
+    local decalsyeeted = true
+    local g = game
+    local w = g.Workspace
+    local l = g.Lighting
+    local t = w.Terrain    
+    sethiddenproperty(l, "Technology", 2)
+    sethiddenproperty(t, "Decoration", false)
+    t.WaterWaveSize = 0
+    t.WaterWaveSpeed = 0
+    t.WaterReflectance = 0
+    t.WaterTransparency = 0
+    l.GlobalShadows = false
+    l.FogEnd = 9e9
+    l.Brightness = 0
+    settings().Rendering.QualityLevel = "Level01"    
+    local function optimizePart(v)
+        if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+        elseif v:IsA("Decal") or v:IsA("Texture") and decalsyeeted then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Lifetime = NumberRange.new(0)
+        elseif v:IsA("Explosion") then
+            v.BlastPressure = 1
+            v.BlastRadius = 1
+        elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+            v.Enabled = false
+        elseif v:IsA("MeshPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+            v.TextureID = 10385902758728957
+        end
+    end    
+    for i, v in pairs(w:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") or v:IsA("MeshPart") then
+            optimizePart(v)
+        end
+    end
+    for i, e in pairs(l:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = false
+        end
+    end
+end
+
+
+local Toggle1 = Misc:AddToggle({
+  Name = "Black Screen",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+	getgenv().StartBlackScreen = Value
+end)
+local lastUpdateTime = 0
+local updateCooldown = 0.5
+spawn(function()
+    while task.wait() do
+        if tick() - lastUpdateTime >= updateCooldown then
+            lastUpdateTime = tick()
+            if getgenv().StartBlackScreen then
+                game:GetService("Players").LocalPlayer.PlayerGui.Main.Blackscreen.Size = UDim2.new(500, 0, 500, 500)
+            else
+                game:GetService("Players").LocalPlayer.PlayerGui.Main.Blackscreen.Size = UDim2.new(1, 0, 500, 500)
+            end
+        end
+    end
+end)
+
+local Toggle1 = Misc:AddToggle({
+  Name = "White Screen",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().WhiteScreen = Value
+    if getgenv().WhiteScreen == true then
+        game:GetService("RunService"):Set3dRenderingEnabled(false)
+    elseif getgenv().WhiteScreen == false then
+        game:GetService("RunService"):Set3dRenderingEnabled(true)
+    end
+end)
