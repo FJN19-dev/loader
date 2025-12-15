@@ -2527,46 +2527,57 @@ Shop:AddButton({
     end
 })
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Player = Players.LocalPlayer
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-local CommF_Remote = Remotes:WaitForChild("CommF_")
-
--- CFrame do Black Leg por Sea
-local BlackLegCFrame
-
-if Sea1 then
-    BlackLegCFrame = CFrame.new(-987.5, 13.8, 3965.8) -- SEA 1
-elseif Sea2 then
-    BlackLegCFrame = CFrame.new(-8712.2, 142.2, -13568.9) -- SEA 2
-elseif Sea3 then
-    BlackLegCFrame = CFrame.new(-5041.89258, 371.348022, -3176.3645, 0.635458767, -6.51252137e-08, 0.772134781, -4.38871055e-08, 1, 1.20462985e-07, -0.772134781, -1.10436019e-07, 0.635458767) -- SEA 3
+-- Verificar qual Sea o jogador está
+local Sea1, Sea2, Sea3 = false, false, false
+if game.PlaceId == 2753915549 then
+    Sea1 = true
+elseif game.PlaceId == 4442272183 then
+    Sea2 = true
+elseif game.PlaceId == 7449423635 then
+    Sea3 = true
+else
+    game:GetService("Players").LocalPlayer:Kick("Do not Support, Please wait...")
 end
 
-Shop:AddButton({
-    "Black Leg", 
-   function()
+Shop:AddButton({"Black Leg", function()
 
-        local char = Player.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        if not hrp or not BlackLegCFrame then return end
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-        -- salva posição atual
-        local oldCFrame = hrp.CFrame
+    local Player = Players.LocalPlayer
+    local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+    local CommF_Remote = Remotes:WaitForChild("CommF_")
 
-        -- TP até o local do Black Leg
-        hrp.CFrame = BlackLegCFrame
-        task.wait(0.5)
+    -- CFrame do Black Leg por Sea
+    local BlackLegCFrame
 
-        -- compra
-        pcall(function()
-            CommF_Remote:InvokeServer("BuyBlackLeg")
-        end)
+    if Sea1 then
+        BlackLegCFrame = CFrame.new(-987.5, 13.8, 3965.8) -- SEA 1
+    elseif Sea2 then
+        BlackLegCFrame = CFrame.new(-8712.2, 142.2, -13568.9) -- SEA 2
+    elseif Sea3 then
+        BlackLegCFrame = CFrame.new(-5041.89258, 371.348022, -3176.3645,0.635458767, -6.51252137e-08, 0.772134781,-4.38871055e-08, 1, 1.20462985e-07,-0.772134781, -1.10436019e-07, 0.635458767) -- SEA 3
+    end
 
-        task.wait(0.5)
+    local char = Player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp or not BlackLegCFrame then return end
 
-        -- volta pra onde estava
-        hrp.CFrame = oldCFrame
+    -- salva posição atual
+    local oldCFrame = hrp.CFrame
+
+    -- TP até o Black Leg
+    hrp.CFrame = BlackLegCFrame
+    task.wait(0.5)
+
+    -- compra
+    pcall(function()
+        CommF_Remote:InvokeServer("BuyBlackLeg")
+    end)
+
+    task.wait(0.5)
+
+    -- volta para a posição original
+    hrp.CFrame = oldCFrame
+
 end})
