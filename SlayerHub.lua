@@ -3171,3 +3171,616 @@ Toggle1:Callback(function(Value)
         game:GetService("RunService"):Set3dRenderingEnabled(true)
     end
 end)
+
+local Toggle1 = Misc:AddToggle({
+  Name = "Hide Mob",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+      getgenv().HideMob = Value	
+end)
+spawn(function()
+    while task.wait() do
+        if getgenv().HideMob then
+            pcall(function()
+                for i, v in pairs(game:GetService("Workspace").Enemies:GetDescendants()) do
+                    if v.ClassName == "MeshPart" then
+                        v.Transparency = 1
+                    end
+                end
+                for i, v in pairs(game:GetService("Workspace").Enemies:GetDescendants()) do
+                    if v.Name == "Head" then
+                        v.Transparency = 1
+                    end
+                end
+                for i, v in pairs(game:GetService("Workspace").Enemies:GetDescendants()) do
+                    if v.ClassName == "Accessory" then
+                        v.Handle.Transparency = 1
+                    end
+                end
+                for i, v in pairs(game:GetService("Workspace").Enemies:GetDescendants()) do
+                    if v.ClassName == "Decal" then
+                        v.Transparency = 1
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+local Toggle1 = Misc:AddToggle({
+  Name = "Remove Dame Text",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().RemoveText = Value
+    game:GetService("ReplicatedStorage").Assets.GUI.DamageCounter.Enabled = not getgenv().RemoveText
+end)
+
+local Toggle1 = Misc:AddToggle({
+  Name = "Remove Notification",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().RemoveNotification = Value
+    game.Players.LocalPlayer.PlayerGui.Notifications.Enabled = not getgenv().RemoveNotification
+end)
+
+local Toggle1 = Misc:AddToggle({
+  Name = "Auto Rejoin On Kick",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AutoRejoinKick = Value
+    if Value then
+        getgenv().rejoin = game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+            if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+                game:GetService("TeleportService"):Teleport(game.PlaceId)
+            end
+        end)
+    else
+        if getgenv().rejoin then
+            getgenv().rejoin:Disconnect()
+            getgenv().rejoin = nil
+        end
+    end
+end)
+
+Misc:AddTextBox({
+  Name = "Input Job Id",
+  Description = "", 
+  PlaceholderText = "Paste Job Id",
+  Callback = function(Value)
+         getgenv().Job = Value  
+  end
+})
+
+local Toggle1 = Misc:AddToggle({
+  Name = "Spam Join",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+getgenv().Join = Value
+end)
+spawn(function()
+    local lastTeleportTime = 0
+    local teleportCooldown = 1    
+    while task.wait() do
+        if getgenv().Join and tick() - lastTeleportTime >= teleportCooldown then
+            lastTeleportTime = tick()
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.placeId, getgenv().Job, game.Players.LocalPlayer)
+        end
+    end
+end)
+local lastTeleportTime = 0
+local teleportCooldown = 5
+Misc:AddButton({"Join Server", function()
+        if tick() - lastTeleportTime >= teleportCooldown then
+            lastTeleportTime = tick()
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.placeId, getgenv().Job, game.Players.LocalPlayer)        
+        end
+end})
+local lastCopyTime = 0
+local copyCooldown = 2
+Misc:AddButton({"Copy JobId", function()
+        if tick() - lastCopyTime >= copyCooldown then
+            lastCopyTime = tick()
+            setclipboard(tostring(game.JobId))
+            print("JobId Copied!")
+        else
+            print("Please try again in a moment!")
+        end
+end})
+local lastTeleportTime = 0
+local teleportCooldown = 3
+Misc:AddButton({"Rejoin Server", function()
+        if tick() - lastTeleportTime >= teleportCooldown then
+            lastTeleportTime = tick()
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game:GetService("Players").LocalPlayer)        
+        end
+end})
+Misc:AddButton({"Hop Server", function()
+          Hop()
+end})
+function Hop()
+    local PlaceID = game.PlaceId
+    local AllIDs = {}
+    local foundAnything = ""
+    local actualHour = os.date("!*t").hour
+    local Deleted = false
+    function TPReturner()
+        local Site;
+        if foundAnything == "" then
+            Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+        else
+            Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+        end        
+        local ID = ""
+        if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+            foundAnything = Site.nextPageCursor
+        end        
+        local num = 0
+        for i,v in pairs(Site.data) do
+            local Possible = true
+            ID = tostring(v.id)            
+            if tonumber(v.maxPlayers) > tonumber(v.playing) then
+                for _,Existing in pairs(AllIDs) do
+                    if num ~= 0 then
+                        if ID == tostring(Existing) then
+                            Possible = false
+                        end
+                    else
+                        if tonumber(actualHour) ~= tonumber(Existing) then
+                            local delFile = pcall(function()
+                                AllIDs = {}
+                                table.insert(AllIDs, actualHour)
+                            end)
+                        end
+                    end
+                    num = num + 1
+                end
+                if Possible == true then
+                    table.insert(AllIDs, ID)
+                    wait(0.1)
+                    pcall(function()
+                        game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
+                    end)
+                    wait(1)
+                    break
+                end
+            end
+        end
+    end
+    function Teleport() 
+        while true do
+            pcall(function()
+                TPReturner()
+                if foundAnything ~= "" then
+                    TPReturner()
+                end
+            end)
+            wait(2)
+        end
+    end
+    Teleport()
+end
+
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Haki ",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AUTOHAKI = Value
+end)
+spawn(function()
+    local canUseHaki = true
+    local debounceTime = 2
+    while task.wait(0.1) do
+        if getgenv().AUTOHAKI then
+            if not game.Players.LocalPlayer.Character:FindFirstChild("HasBuso") and canUseHaki then
+                canUseHaki = false
+                local args = {
+                    [1] = "Buso"
+                }
+                pcall(function()
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end)
+                wait(debounceTime)
+                canUseHaki = true
+            end
+        end
+    end
+end)
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Turn On Race V4",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AutoTurnOnV4 = Value
+end)
+task.spawn(function()
+    local lastCheckTime = 0
+    while true do
+        task.wait(0.1)
+        if getgenv().AutoTurnOnV4 then
+            local currentTime = tick()
+            if currentTime - lastCheckTime >= 0.5 then
+                lastCheckTime = currentTime
+                local character = game.Players.LocalPlayer.Character
+                if character and character:FindFirstChild("RaceEnergy") and
+                   character.RaceEnergy.Value >= 1 and
+                   not character.RaceTransformed.Value then
+                    local be = game:GetService("VirtualInputManager")
+                    be:SendKeyEvent(true, "Y", false, game)
+                    task.wait(0.1)
+                    be:SendKeyEvent(false, "Y", false, game)
+                end
+            end
+        end
+    end
+end)
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Turn On Race V3",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AutoTurnOnV3 = Value
+end)
+task.spawn(function()
+    local prevState = false    
+    while true do
+        task.wait(0.1)        
+        pcall(function()
+            if getgenv().AutoTurnOnV3 ~= prevState then
+                if getgenv().AutoTurnOnV3 then
+                    game:GetService("ReplicatedStorage").Remotes.CommE:FireServer("ActivateAbility")
+                end
+                prevState = getgenv().AutoTurnOnV3
+            end
+        end)
+    end
+end)
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Set Spawn Point",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().Set = Value
+    if Value ~= lastSetState then
+        lastSetState = Value
+        if Value then
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetSpawnPoint")
+            end)
+        end
+    end
+end)
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Anti AFK",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AntiAFK = Value 
+end)
+task.spawn(function()
+    while true do
+        if getgenv().AntiAFK then
+            local vu = game:GetService("VirtualUser")
+            local player = game:GetService("Players").LocalPlayer
+            player.Idled:Connect(function()
+                vu:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+                wait(1)
+                vu:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+            end)
+        end
+        game:GetService("RunService").Heartbeat:wait()
+    end
+end)
+local Toggle1 = Settings:AddToggle({
+  Name = "Reset Teleport",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    BypassTP = Value 
+end)
+local Toggle1 = Settings:AddToggle({
+  Name = "Stop Reset Teleport When Have Legendary",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().StopTP = Value 
+end)
+spawn(function()
+	while task.wait(1) do
+		if getgenv().StopTP then
+			if game.Players.LocalPlayer.Backpack:FindFirstChild("Fist of Darkness") or game.Players.LocalPlayer.Character:FindFirstChild("Fist of Darkness") or game.Players.LocalPlayer.Backpack:FindFirstChild("God's Chalice") or game.Players.LocalPlayer.Character:FindFirstChild("God's Chalice") then
+				BypassTP = false
+			end
+		end
+	end
+end)
+getgenv().FastAttack = false
+local Toggle1 = Settings:AddToggle({
+  Name = "Fast Attack",
+  Description = "",
+  Default = false 
+})
+local FastAttackTask
+local function FastAttackLoop()
+    while getgenv().FastAttack do
+        if type(AttackNoCoolDown) == "function" then
+            AttackNoCoolDown()
+        end
+        task.wait(0.1)
+    end
+end
+Toggle1:Callback(function(Value)
+    getgenv().FastAttack = Value
+    if Value and not FastAttackTask then
+        FastAttackTask = task.spawn(FastAttackLoop)
+    end
+    if not Value and FastAttackTask then
+        FastAttackTask = nil
+    end
+end)
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Bring Mob",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().BringMonster = Value 
+end)
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            CheckQuest()
+            local enemies = Workspace.Enemies:GetChildren()
+            local MonsterCount = 0
+            for _, enemy in ipairs(enemies) do
+                if MonsterCount >= 2 then
+                    break
+                end                
+                if getgenv().BringMonster and enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") then
+                    local humanoid = enemy:FindFirstChild("Humanoid")
+                    local rootPart = enemy:FindFirstChild("HumanoidRootPart")
+                    if humanoid and rootPart and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local distance = (rootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                        if getgenv().StartMagnet and (enemy.Name == MonFarm or enemy.Name == Mon) and humanoid.Health > 0 and distance <= 350 then
+                            if enemy.Name == "Factory Staff" and PosMon and (rootPart.Position - PosMon.Position).Magnitude <= 5000 then
+                                if rootPart.Parent then
+                                    rootPart.CanCollide = false
+                                    rootPart.Size = Vector3.new(60, 60, 60)
+                                    rootPart.CFrame = PosMon
+                                    enemy.Head.CanCollide = false
+                                    local animator = humanoid:FindFirstChild("Animator")
+                                    if animator then
+                                        pcall(function()
+                                            animator:Destroy()
+                                        end)
+                                    end
+                                    sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+                                    MonsterCount = MonsterCount + 1
+                                end
+                            elseif (enemy.Name == MonFarm or enemy.Name == Mon) and PosMon and (rootPart.Position - PosMon.Position).Magnitude <= 4500 then
+                                if rootPart.Parent then
+                                    rootPart.CanCollide = false
+                                    rootPart.Size = Vector3.new(60, 60, 60)
+                                    rootPart.CFrame = PosMon
+                                    enemy.Head.CanCollide = false
+                                    local animator = humanoid:FindFirstChild("Animator")
+                                    if animator then
+                                        pcall(function()
+                                            animator:Destroy()
+                                        end)
+                                    end
+                                    sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+                                    MonsterCount = MonsterCount + 1
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+local Toggle1 = Settings:AddToggle({
+  Name = "Spin Position",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().SpinPos = Value
+end)
+spawn(function()
+    while wait() do
+        if getgenv().SpinPos then
+            Pos = CFrame.new(0, PosY, -20)
+            wait(0.1)
+            Pos = CFrame.new(-20, PosY, 0)
+            wait(0.1)
+            Pos = CFrame.new(0, PosY, 20)
+            wait(0.1)
+            Pos = CFrame.new(20, PosY, 0)
+        else
+            Pos = CFrame.new(0, PosY, 0)
+        end
+    end
+end)
+Settings:AddSlider({
+  Name = "Farm Distance",
+  Min = 0,
+  Max = 30,
+  Increase = 1,
+  Default = 15,
+  Callback = function(Value)
+         PosY = Value
+  end
+})
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Reduce Lag Farm Safely",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().ReduceLag = Value
+end)
+spawn(function()
+    while wait(0.1) do
+        if getgenv().ReduceLag then
+            for i, v in pairs(game.Workspace["_WorldOrigin"]:GetChildren()) do
+                if v and (v.Name == "CurvedRing" or v.Name == "SlashHit" or v.Name == "SwordSlash" or v.Name == "SlashTail" or v.Name == "Sounds") then
+                    pcall(function()
+                        v:Destroy()
+                    end)
+                end
+            end
+        end
+    end
+end)
+local Toggle1 = Settings:AddToggle({
+  Name = "Anti Cheat Farming",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().ResetFlags = Value
+end)
+spawn(function()
+    while task.wait(5) do
+        pcall(function()
+            if getgenv().ResetFlags then
+                local player = game:GetService("Players").LocalPlayer                
+                for _, v in pairs(player.Character:GetDescendants()) do
+                    if v:IsA("LocalScript") then
+                        local scriptsToRemove = {
+                            "General", "Shiftlock", "FallDamage", "4444", 
+                            "CamBob", "JumpCD", "Looking", "Run"
+                        }
+                        if table.find(scriptsToRemove, v.Name) then
+                            v:Destroy()
+                        end
+                    end
+                end
+                for _, v in pairs(player.PlayerScripts:GetDescendants()) do
+                    if v:IsA("LocalScript") then
+                        local scriptsToRemove = {
+                            "RobloxMotor6DBugFix", "Clans", "Codes", "CustomForceField",
+                            "MenuBloodSp", "PlayerList"
+                        }
+                        if table.find(scriptsToRemove, v.Name) then
+                            v:Destroy()
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Melee",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(t)
+    _G.Melee = t
+    spawn(function()
+        while _G.Melee do
+            wait(0.1)
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", Point)
+            end)
+        end
+    end) 
+end)
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Defense",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(t)
+    _G.Defense = t
+    spawn(function()
+        while _G.Defense do
+            wait(0.1)
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Defense", Point)
+            end)
+        end
+    end)
+end)
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Sword",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(t)
+    _G.Sword = t
+    spawn(function()
+        while _G.Sword do
+            wait(0.1)
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Sword", Point)
+            end)
+        end
+    end)
+end)
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Gun",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(t)
+    _G.Gun = t
+
+    spawn(function()
+        while _G.Gun do
+            wait(0.1)
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Gun", Point)
+            end)
+        end
+    end)
+end)
+
+local Toggle1 = Settings:AddToggle({
+  Name = "Auto Blox Fruit",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(t)
+    _G.Fruit = t
+
+    spawn(function()
+        while _G.Fruit do
+            wait(0.1)
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", Point)
+            end)
+        end
+    end)
+end)
