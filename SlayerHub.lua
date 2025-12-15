@@ -2539,6 +2539,8 @@ else
     game:GetService("Players").LocalPlayer:Kick("Do not Support, Please wait...")
 end
 
+local Estilo = Shop:AddSection({"Estilos De Lutas"})
+
 Shop:AddButton({"Black Leg", function()
 
     local Players = game:GetService("Players")
@@ -2548,7 +2550,6 @@ Shop:AddButton({"Black Leg", function()
     local Remotes = ReplicatedStorage:WaitForChild("Remotes")
     local CommF_Remote = Remotes:WaitForChild("CommF_")
 
-    -- CFrame do Black Leg por Sea
     local BlackLegCFrame
 
     if Sea1 then
@@ -2563,21 +2564,430 @@ Shop:AddButton({"Black Leg", function()
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if not hrp or not BlackLegCFrame then return end
 
-    -- salva posição atual
     local oldCFrame = hrp.CFrame
 
-    -- TP até o Black Leg
     hrp.CFrame = BlackLegCFrame
     task.wait(0.5)
 
-    -- compra
     pcall(function()
         CommF_Remote:InvokeServer("BuyBlackLeg")
     end)
 
     task.wait(0.5)
 
-    -- volta para a posição original
     hrp.CFrame = oldCFrame
 
+end})
+
+Shop:AddButton({"Electro", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_Remote = Remotes:WaitForChild("CommF_")
+
+local ElectroCFrame
+
+if Sea1 then
+    ElectroCFrame = CFrame.new(-987.5, 13.8, 3965.8) -- SEA 1
+elseif Sea2 then
+    ElectroCFrame = CFrame.new(-8712.2, 142.2, -13568.9) -- SEA 2
+elseif Sea3 then
+    ElectroCFrame = CFrame.new(-4991.88379, 314.550995, -3203.14795, -0.346307486, -4.93926429e-08, 0.93812108, -6.97880864e-10, 1, 5.23929806e-08, -0.93812108, 1.74893842e-08, -0.346307486) -- SEA 3
+end
+
+ local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not ElectroCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = ElectroCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            return CommF_Remote:InvokeServer("BuyElectro")
+        end)
+              
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+
+Shop:AddButton({"Fishman Karate", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_Remote = Remotes:WaitForChild("CommF_")
+
+local FishmanKarateCFrame
+
+if Sea1 then
+    FishmanKarateCFrame = CFrame.new(-987.5, 13.8, 3965.8) -- SEA 1
+elseif Sea2 then
+    FishmanKarateCFrame = CFrame.new(-8712.2, 142.2, -13568.9) -- SEA 2
+elseif Sea3 then
+    FishmanKarateCFrame = CFrame.new(-5020.99854, 371.348022, -3185.0188, 0.939474165, -2.79029688e-08, 0.342619687, -1.24160735e-08, 1, 1.15485335e-07, -0.342619687, -1.12749483e-07, 0.939474165) -- SEA 3
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not FishmanKarateCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = FishmanKarateCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            return CommF_Remote:InvokeServer("BuyFishmanKarate")
+        end)
+       
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+
+Shop:AddButton({"Dragon Breath", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF_Remote = Remotes:WaitForChild("CommF_")
+
+local DragonBreathCFrame
+
+if Sea1 then
+    DragonBreathCFrame = CFrame.new(-987.5, 13.8, 3965.8) -- SEA 1
+elseif Sea2 then
+    DragonBreathCFrame = CFrame.new(-8712.2, 142.2, -13568.9) -- SEA 2
+elseif Sea3 then
+    DragonBreathCFrame = CFrame.new(-4979.09424, 371.347961, -3204.54907, 0.820647717, 4.9866749e-08, 0.571434438, -9.74734604e-09, 1, -7.32675645e-08, -0.571434438, 5.45568923e-08, 0.820647717) -- SEA 3
+end
+
+local char = Player.Character
+local hrp = char and char:FindFirstChild("HumanoidRootPart")
+if not hrp or not DragonBreathCFrame then return end
+
+local oldCFrame = hrp.CFrame
+
+hrp.CFrame = DragonBreathCFrame
+task.wait(0.5)
+
+pcall(function()
+    CommF_Remote:InvokeServer("BlackbeardReward", "DragonClaw", "1")
+end)
+
+task.wait(0.3)
+
+pcall(function()
+    CommF_Remote:InvokeServer("BlackbeardReward", "DragonClaw", "2")
+end)
+
+task.wait(0.5)
+
+hrp.CFrame = oldCFrame
+
+end})
+
+Shop:AddButton({"Superhuman", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local CommF_ = ReplicatedStorage.Remotes.CommF_
+
+local SuperhumanCFrame
+
+if Sea2 then
+    SuperhumanCFrame = CFrame.new(-2847.5, 7.6, -3156.2)
+elseif Sea3 then
+    SuperhumanCFrame = CFrame.new(-5002.0918, 371.347961, -3193.32031, 0.896233737, 4.13234025e-09, 0.443582058, -2.47938221e-08, 1, 4.07787475e-08, -0.443582058, -4.75453845e-08, 0.896233737)
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not SuperhumanCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = SuperhumanCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            CommF_:InvokeServer("BuySuperhuman")
+        end)
+
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+Shop:AddButton({"Death Step", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local CommF_ = ReplicatedStorage.Remotes.CommF_
+
+local DeathStepCFrame
+
+if Sea2 then
+    DeathStepCFrame = CFrame.new(-1228.3, 6.2, -1332.6)
+elseif Sea3 then
+    DeathStepCFrame = CFrame.new(-5231.7, 314.6, -3202.3)
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not DeathStepCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = DeathStepCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            CommF_:InvokeServer("BuyDeathStep")
+        end)
+
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+Shop:AddButton({"Sharkman Karate", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local CommF_ = ReplicatedStorage.Remotes.CommF_
+
+local SharkmanCFrame
+
+if Sea2 then
+    SharkmanCFrame = CFrame.new(-8762.4, 32.1, -13442.7)
+elseif Sea3 then
+    SharkmanCFrame = CFrame.new(-5015.2, 314.8, -3199.2)
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not SharkmanCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = SharkmanCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            CommF_:InvokeServer("BuySharkmanKarate", true)
+        end)
+        
+        task.wait(0.2)
+
+        pcall(function()
+            CommF_:InvokeServer("BuySharkmanKarate")
+        end)
+
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+Shop:AddButton({"Electric Claw", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local CommF_ = ReplicatedStorage.Remotes.CommF_
+
+local ElectricClawCFrame
+
+if Sea3 then
+    ElectricClawCFrame = CFrame.new(-10369.3389, 331.68924, -10128.7705, 0.546696782, -3.01970005e-08, 0.837330639, -2.30298962e-08, 1, 5.10997289e-08, -0.837330639, -4.72196966e-08, 0.546696782)
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not ElectricClawCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = ElectricClawCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            CommF_:InvokeServer("BuyElectricClaw")
+        end)
+
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+Shop:AddButton({"Dragon Talon", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local CommF_ = ReplicatedStorage.Remotes.CommF_
+
+local DragonTalonCFrame
+
+if Sea3 then
+    DragonTalonCFrame = CFrame.new()
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not DragonTalonCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = DragonTalonCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            CommF_:InvokeServer("BuyDragonTalon")
+        end)
+
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+Shop:AddButton({"God Human", function()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Player = Players.LocalPlayer
+local CommF_ = ReplicatedStorage.Remotes.CommF_
+
+local GodHumanCFrame
+
+if Sea3 then
+    GodHumanCFrame = CFrame.new(-13777.8545, 334.657532, -9877.3623, 0.35364452, 1.17245193e-07, -0.935379922, -1.54236997e-08, 1, 1.19513672e-07, 0.935379922, -2.78383343e-08, 0.35364452)
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not GodHumanCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = GodHumanCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            CommF_:InvokeServer("BuyGodhuman")
+        end)
+
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+Shop:AddButton({"Sanguine Art", function()
+
+local SanguineCFrame
+
+if Sea3 then
+    SanguineCFrame = CFrame.new(-5059.7, 314.5, -3176.3)
+end
+
+local char = Player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp or not SanguineCFrame then return end
+
+        local oldCFrame = hrp.CFrame
+
+        hrp.CFrame = SanguineCFrame
+        task.wait(0.5)
+
+        pcall(function()
+            CommF_:InvokeServer("BuySanguineArt", true)
+        end)
+
+        task.wait(0.2)
+
+        pcall(function()
+            CommF_:InvokeServer("BuySanguineArt")
+        end)
+
+        task.wait(0.5)
+
+        hrp.CFrame = oldCFrame
+
+end})
+
+local Estilo = Shop:AddSection({"Habilidade"})
+
+Shop:AddButton({"Skyjump [ $10,000 Beli ]", function()
+	game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
+end})
+
+Shop:AddButton({"Buso Haki [ $25,000 Beli ]", function()
+	game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Buso")
+end})
+
+Shop:AddButton({"Observation haki [ $750,000 Beli ]", function()
+	game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("KenTalk","Buy")
+end})
+
+Shop:AddButton({"Soru [ $100,000 Beli ]", function()
+	game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyHaki","Soru")
+end})
+
+local Section = Shop:AddSection({"Player"})
+
+Shop:AddButton({"Buy Refund Stat (2500F)", function()
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","1")
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","2")
+end})
+
+Shop:AddButton({"Buy Reroll Race (3000F)", function()
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","1")
+         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Refund","2")
+end})
+
+Shop:AddButton({"Buy Ghoul Race", function()
+        local args1 = {[1] = "Ectoplasm", [2] = "BuyCheck", [3] = 4}
+        local args2 = {[1] = "Ectoplasm", [2] = "Change", [3] = 4}
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args1))        
+        wait(0.5)
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args2))
+end})
+
+Shop:AddButton({"Buy Cyborg Race (2500F)", function()
+ if not isBuying then
+            isBuying = true
+            local args = {[1] = "CyborgTrainer", [2] = "Buy"}
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))                        
+            wait(0.5)
+            isBuying = false
+        end
 end})
