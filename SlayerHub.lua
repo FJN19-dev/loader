@@ -3925,21 +3925,21 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
                     local enemies = game.Workspace.Enemies:GetChildren()
                     local foundEnemy = false
 
-                    for _, v in pairs(enemies) do
-                        if Bone[v.Name] and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                    for _, mob in pairs(enemies) do
+                        if Bone[mob.Name] and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
                             foundEnemy = true
 
                             -- Puxar inimigo para você
-                            v.HumanoidRootPart.CFrame = Bone[v.Name]
-                            v.Head.CanCollide = false
-                            v.Humanoid.Sit = false
-                            v.Humanoid:ChangeState(11)
+                            mob.HumanoidRootPart.CFrame = Bone[mob.Name]
+                            mob.Head.CanCollide = false
+                            mob.Humanoid.Sit = false
+                            mob.Humanoid:ChangeState(11)
                             task.wait(0.1)
-                            v.Humanoid:ChangeState(14)
-                            v.HumanoidRootPart.CanCollide = false
-                            v.Humanoid.JumpPower = 0
-                            v.Humanoid.WalkSpeed = 0
-                            local animator = v.Humanoid:FindFirstChild("Animator")
+                            mob.Humanoid:ChangeState(14)
+                            mob.HumanoidRootPart.CanCollide = false
+                            mob.Humanoid.JumpPower = 0
+                            mob.Humanoid.WalkSpeed = 0
+                            local animator = mob.Humanoid:FindFirstChild("Animator")
                             if animator then animator:Destroy() end
                             sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
 
@@ -3948,12 +3948,13 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
                                 task.wait(0.1)
                                 AutoHaki()
                                 EquipWeapon(getgenv().SelectWeapon)
-                                v.HumanoidRootPart.CanCollide = false
-                                v.Humanoid.WalkSpeed = 0
-                                v.Head.CanCollide = false
+                                mob.HumanoidRootPart.CanCollide = false
+                                mob.Humanoid.WalkSpeed = 0
+                                mob.Head.CanCollide = false
                                 getgenv().BonesBring = true
-                                topos(v.HumanoidRootPart.CFrame * Pos)
-                            until not getgenv().AutoFarmBone or not v.Parent or v.Humanoid.Health <= 0
+                                -- Teleporta 20 studs acima do inimigo
+                                topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                            until not getgenv().AutoFarmBone or not mob.Parent or mob.Humanoid.Health <= 0
                         end
                     end
 
@@ -3974,9 +3975,9 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
                         getgenv().BonesBring = false
                         topos(CFrame.new(-9515, 164, 5786))
 
-                        for _, v in pairs(game.ReplicatedStorage:GetChildren()) do
-                            if Bone[v.Name] then
-                                topos(v.HumanoidRootPart.CFrame * CFrame.new(2, 20, 2))
+                        for _, mob in pairs(game.ReplicatedStorage:GetChildren()) do
+                            if Bone[mob.Name] then
+                                topos(mob.HumanoidRootPart.CFrame * CFrame.new(2, 20, 2))
                             end
                         end
                     end
@@ -3985,6 +3986,7 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
         end
     end)
 end
+
 
 
 -------Playerstab---
