@@ -3568,6 +3568,64 @@ Toggle1:Callback(function(Value)
     getgenv().SkillF = Value
 end)
 
+-- CONFIG
+getgenv().AimPlayerSkill = false
+getgenv().AimPart = "HumanoidRootPart" -- ou "Head"
+getgenv().AimDistance = 1000
+
+-- TOGGLE (o seu)
+local Toggle1 = Players:AddToggle({ 
+    Name = "Aimbot Skill (Players)",
+    Description = "Mira automática em <font color='rgb(88, 101, 242)'>Players</font>",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    getgenv().AimPlayerSkill = Value
+end)
+
+-- SERVICES
+local PlayersService = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = PlayersService.LocalPlayer
+
+-- FUNÇÃO: player mais próximo da câmera
+local function GetClosestPlayer()
+    local closestPart
+    local shortest = math.huge
+
+    for _, player in pairs(PlayersService:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            local part = player.Character:FindFirstChild(getgenv().AimPart)
+
+            if humanoid and humanoid.Health > 0 and part then
+                local dist = (part.Position - Camera.CFrame.Position).Magnitude
+                if dist < shortest and dist <= getgenv().AimDistance then
+                    shortest = dist
+                    closestPart = part
+                end
+            end
+        end
+    end
+
+    return closestPart
+end
+
+-- LOOP DO AIMBOT
+RunService.RenderStepped:Connect(function()
+    if not getgenv().AimPlayerSkill then return end
+
+    local target = GetClosestPlayer()
+    if target then
+        Camera.CFrame = CFrame.new(
+            Camera.CFrame.Position,
+            target.Position
+        )
+    end
+end)
+
 
 
 ------shop --------
