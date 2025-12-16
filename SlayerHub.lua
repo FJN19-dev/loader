@@ -328,6 +328,24 @@ Window:AddMinimizeButton({
     local Misc = Window:MakeTab({ "Misc", "list-plus" })
     local Settings = Window:MakeTab({ "Setting", "settings" })
     
+-- =========================
+-- DETECTA SEA
+-- =========================
+local placeId = game.PlaceId
+local First_Sea = false
+local Second_Sea = false
+local Third_Sea = false
+
+if placeId == 2753915549 then
+    First_Sea = true
+elseif placeId == 4442272183 then
+    Second_Sea = true
+elseif placeId == 7449423635 then
+    Third_Sea = true
+else
+    game:Shutdown()
+end
+
 
 
 if not game:IsLoaded() then
@@ -3570,40 +3588,220 @@ end)
 
 ------Sub-------
 
-if Sea2 then
+-- só cria o toggle se estiver no World2
+if World2 then
+    local Toggle1 = Sub:AddToggle({
+        Name = "Auto Factory",
+        Description = "Ativa Auto Factory apenas no Sea 2",
+        Default = false
+    })  
+
+    Toggle1:Callback(function(Value)
+        getgenv().AutoFactory = Value
+        StopTween(getgenv().AutoFactory)
+    end)
+
+    -- loop de execução
+    task.spawn(function()
+        while task.wait(0.1) do
+            if getgenv().AutoFactory then
+                local enemies = game:GetService("Workspace").Enemies
+                local coreEnemy = enemies:FindFirstChild("Core")
+                
+                if coreEnemy and coreEnemy:FindFirstChild("Humanoid") and coreEnemy.Humanoid.Health > 0 then
+                    repeat
+                        task.wait(0.1)
+                        AutoHaki()  
+                        EquipWeapon(getgenv().SelectWeapon)  
+
+                        if coreEnemy:FindFirstChild("HumanoidRootPart") then
+                            topos(coreEnemy.HumanoidRootPart.CFrame)
+                        end
+                    until not coreEnemy or coreEnemy.Humanoid.Health <= 0 or not getgenv().AutoFactory
+                else
+                    topos(CFrame.new(448.46756, 199.356781, -441.389252))
+                end
+            end
+        end
+    end)
+end
+
+
 local Toggle1 = Sub:AddToggle({
-   Name = "Auto Factory",
-   Description = "",
-   Default = false 
-})  
+  Name = "Auto Raid Pirata",
+  Description = "",
+  Default = false 
+})
 Toggle1:Callback(function(Value)
-    getgenv().AutoFactory = Value
-    StopTween(getgenv().AutoFactory)
+    getgenv().AutoPirateRaid = Value
+    StopTween(getgenv().AutoPirateRaid)
 end)
+
 task.spawn(function()
     while task.wait(0.1) do
-        -- só continua se AutoFactory estiver ativo e World2 existir
-        if getgenv().AutoFactory and World2 then
-            local enemies = game:GetService("Workspace").Enemies
-            local coreEnemy = enemies:FindFirstChild("Core")
-            
-            if coreEnemy and coreEnemy:FindFirstChild("Humanoid") and coreEnemy.Humanoid.Health > 0 then
-                repeat
-                    task.wait(0.1)
-                    AutoHaki()  -- ativa Haki
-                    EquipWeapon(getgenv().SelectWeapon)  -- equipa a arma
-                    -- teleporta até o inimigo, só se o HumanoidRootPart existir
-                    if coreEnemy:FindFirstChild("HumanoidRootPart") then
-                        topos(coreEnemy.HumanoidRootPart.CFrame)
+        -- só executa se AutoPirateRaid estiver ativo e World3 existir
+        if getgenv().AutoPirateRaid and World3 then
+            pcall(function()
+                local CFrameBoss = CFrame.new(-5496.17432, 313.768921, -2841.53027)
+                local player = game.Players.LocalPlayer
+                local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")            
+                if not humanoidRootPart then return end
+
+                local distanceToBoss = (CFrame.new(-5539.311, 313.801, -2972.372).Position - humanoidRootPart.Position).Magnitude
+
+                if distanceToBoss <= 500 then
+                    for _, enemy in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if getgenv().AutoPirateRaid and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                            local enemyDistance = (enemy.HumanoidRootPart.Position - humanoidRootPart.Position).Magnitude
+                            if enemyDistance < 2000 then
+                                repeat 
+                                    task.wait(0.1)
+                                    AutoHaki()
+                                    EquipWeapon(getgenv().SelectWeapon)
+                                    if enemy:FindFirstChild("HumanoidRootPart") then
+                                        enemy.HumanoidRootPart.CanCollide = false
+                                        topos(enemy.HumanoidRootPart.CFrame * Pos)
+                                    end
+                                    getgenv().StartMagnet = true
+                                until not enemy.Parent or enemy.Humanoid.Health <= 0 or not getgenv().AutoPirateRaid
+                            end
+                        end
                     end
-                until not coreEnemy or coreEnemy.Humanoid.Health <= 0 or not getgenv().AutoFactory
-            else
-                -- se não houver inimigo, vai para a posição padrão
-                topos(CFrame.new(448.46756, 199.356781, -441.389252))
-            end
+                else
+                    UnEquipWeapon(getgenv().SelectWeapon)
+
+                    if BypassTP then
+                        local distanceToCFrameBoss = (humanoidRootPart.Position - CFrameBoss.Position).Magnitude
+                        if distanceToCFrameBoss > 1500 then
+                            BTP(CFrameBoss)
+                        else
+                            topos(CFrameBoss)
+                        end
+                    end
+
+                    topos(CFrame.new(-5122, 315, -2963))
+                end
+            end)
         end
     end
 end)
+
+local Section = Sub:AddSection({"Elite Hunter"})
+
+local Toggle1 = Sub:AddToggle({
+    Name = "Auto Elite Hunter",
+    Description = "",
+    Default = false
+})
+
+Toggle1:Callback(function(Value)
+    _G.AutoElite = Value
+
+    if Value then
+        spawn(function()
+            while _G.AutoElite do
+                pcall(function()
+                    local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
+                    local workspaceEnemies = game:GetService("Workspace").Enemies
+                    local replicatedStorage = game:GetService("ReplicatedStorage")
+                    
+                    if playerGui.Main.Quest.Visible then
+                        local questTitle = playerGui.Main.Quest.Container.QuestTitle.Title.Text
+                        if string.find(questTitle, "Diablo") or string.find(questTitle, "Deandre") or string.find(questTitle, "Urban") then
+                            for _, v in pairs(workspaceEnemies:GetChildren()) do
+                                if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                                    if v.Name == "Diablo" or v.Name == "Deandre" or v.Name == "Urban" then
+                                        repeat wait(0)
+                                            EquipTool(SelectWeapon)
+                                            AutoHaki()
+                                            toTarget(v.HumanoidRootPart.CFrame * CFrame.new(posX, posY, posZ))
+                                            MonsterPosition = v.HumanoidRootPart.CFrame
+                                            v.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame
+                                            v.Humanoid.JumpPower = 0
+                                            v.Humanoid.WalkSpeed = 0
+                                            v.HumanoidRootPart.CanCollide = false
+                                            v.HumanoidRootPart.Size = Vector3.new(1,1,1)
+                                        until not _G.AutoElite or v.Humanoid.Health <= 0 or not v.Parent
+                                    end
+                                end
+                            end
+                        else
+                            -- Se o inimigo não estiver no Workspace
+                            local targets = {"Diablo", "Deandre", "Urban"}
+                            for _, name in pairs(targets) do
+                                if workspaceEnemies:FindFirstChild(name) then
+                                    toTarget(workspaceEnemies[name].HumanoidRootPart.CFrame * CFrame.new(posX,posY,posZ))
+                                elseif replicatedStorage:FindFirstChild(name) then
+                                    toTarget(replicatedStorage[name].HumanoidRootPart.CFrame * CFrame.new(posX,posY,posZ))
+                                end
+                            end
+                        end
+                    else
+                        replicatedStorage.Remotes.CommF_:InvokeServer("EliteHunter")
+                    end
+                end)
+            end
+        end)
+    end
+end)
+
+local Toggle1 = Sub:AddToggle({
+  Name = "Hop Server Elite Hunter",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AutoEliteHunterHop = Value
+end)
+spawn(function()
+    while task.wait(0.3) do
+        if getgenv().AutoEliteHunter and World3 then
+            pcall(function()
+                local player = game:GetService("Players").LocalPlayer
+                local questGui = player.PlayerGui.Main.Quest
+                if questGui.Visible == true then
+                    local questTitle = questGui.Container.QuestTitle.Title.Text
+                    local eliteNames = {"Diablo", "Deandre", "Urban"}
+                    local foundEnemy = false                    
+                    for _, enemy in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if table.find(eliteNames, enemy.Name) and 
+                           enemy:FindFirstChild("Humanoid") and 
+                           enemy:FindFirstChild("HumanoidRootPart") and 
+                           enemy.Humanoid.Health > 0 then                            
+                            foundEnemy = true
+                            repeat
+                                task.wait(0.2)
+                                AutoHaki()
+                                EquipWeapon(getgenv().SelectWeapon)
+                                if enemy:FindFirstChild("HumanoidRootPart") then
+                                    enemy.HumanoidRootPart.CanCollide = false
+                                    enemy.Humanoid.WalkSpeed = 0
+                                    topos(enemy.HumanoidRootPart.CFrame * Pos)
+                                end
+                            until not getgenv().AutoEliteHunter or enemy.Humanoid.Health <= 0 or not enemy.Parent
+                            break
+                        end
+                    end
+                    if not foundEnemy then
+                        for _, name in pairs(eliteNames) do
+                            local enemy = game:GetService("ReplicatedStorage"):FindFirstChild(name)
+                            if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+                                topos(enemy.HumanoidRootPart.CFrame * CFrame.new(2, 20, 2))
+                                break
+                            end
+                        end
+                    end
+                else
+                    local response = game:GetService("ReplicatedStorage").Remotes["CommF_"]:InvokeServer("EliteHunter")
+                    if getgenv().AutoEliteHunterHop and response == "I don't have anything for you right now. Come back later." then
+                        Hop()
+                    end
+                end
+            end)
+        end
+    end
+end)
+
 
 -------Playerstab---
 
