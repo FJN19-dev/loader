@@ -3568,24 +3568,6 @@ Toggle1:Callback(function(Value)
     getgenv().SkillF = Value
 end)
 
--- ================================
--- SERVICES
--- ================================
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-
-local LP = Players.LocalPlayer
-
--- ================================
--- CONFIG
--- ================================
-getgenv().AimbotSkill = false
-getgenv().AimPart = "HumanoidRootPart"
-getgenv().AimDistance = 1500
-
--- ================================
--- TOGGLE
--- ================================
 local Toggle = PlayersTab:AddToggle({
     Name = "Aimbot Skill (Players)",
     Description = "Skill acerta o player mais próximo (SEM mover câmera)",
@@ -3596,57 +3578,25 @@ Toggle:Callback(function(v)
     getgenv().AimbotSkill = v
 end)
 
--- ================================
--- FUNÇÃO: PLAYER MAIS PRÓXIMO
--- ================================
-local function GetClosestPlayer()
-    if not LP.Character or not LP.Character:FindFirstChild("HumanoidRootPart") then
-        return nil
-    end
-
-    local myHRP = LP.Character.HumanoidRootPart
-    local closest, shortest = nil, math.huge
-
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= LP
-        and plr.Team ~= LP.Team
-        and plr.Character
-        and plr.Character:FindFirstChild(getgenv().AimPart)
-        and plr.Character:FindFirstChild("Humanoid")
-        and plr.Character.Humanoid.Health > 0 then
-
-            local part = plr.Character[getgenv().AimPart]
-            local dist = (part.Position - myHRP.Position).Magnitude
-
-            if dist < shortest and dist <= getgenv().AimDistance then
-                shortest = dist
-                closest = part
+-- Loop do Aimbot
+spawn(function()
+    while task.wait() do
+        pcall(function()
+            if getgenv().AimbotSkill and PlayerSelectAimbot ~= nil then
+                local localPlayer = game.Players.LocalPlayer
+                local character = localPlayer.Character
+                if character then
+                    local tool = character:FindFirstChildOfClass("Tool")
+                    if tool and character[tool.Name]:FindFirstChild("MousePos") then
+                        local target = game.Players:FindFirstChild(PlayerSelectAimbot)
+                        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                            local args = { target.Character.HumanoidRootPart.Position }
+                            character[tool.Name].RemoteEvent:FireServer(unpack(args))
+                        end
+                    end
+                end
             end
-        end
-    end
-
-    return closest
-end
-
--- ================================
--- AIMBOT SÓ NA SKILL
--- ================================
-UIS.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if not getgenv().AimbotSkill then return end
-
-    if table.find({
-        Enum.KeyCode.Z,
-        Enum.KeyCode.X,
-        Enum.KeyCode.C,
-        Enum.KeyCode.V,
-        Enum.KeyCode.F
-    }, input.KeyCode) then
-
-        local target = GetClosestPlayer()
-        if target then
-            MousePos = target.Position
-        end
+        end)
     end
 end)
 
