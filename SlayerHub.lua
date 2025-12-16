@@ -4053,7 +4053,7 @@ end)
 end
 
 if World3 then
-local Katakuri = Tabs.Sub:AddSection("Katakuri")
+local Katakuri = Sub:AddSection("Katakuri")
 end
 
 if World3 then
