@@ -3571,6 +3571,351 @@ end)
 -- =========================
 -- CONFIG
 -- =========================
+getgenv().IslandESP = false
+
+-- =========================
+-- SERVICES
+-- =========================
+local PlayersService = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = PlayersService.LocalPlayer
+
+-- =========================
+-- ILHAS POR SEA
+-- =========================
+local islandCFramesSea1 = {
+    {name="WindMill", position=CFrame.new(979.8,16.5,1429)},
+    {name="Marine", position=CFrame.new(-2566.4,6.8,2045.2)},
+    {name="Middle Town", position=CFrame.new(-690.3,15.1,1582.2)},
+    {name="Jungle", position=CFrame.new(-1612.7,36.8,149.1)},
+    {name="Pirate Village", position=CFrame.new(-1181.3,4.7,3803.5)},
+    {name="Desert", position=CFrame.new(944.1,20.9,4373.3)},
+    {name="Snow Island", position=CFrame.new(1347.8,104.6,-1319.7)},
+    {name="MarineFord", position=CFrame.new(-4914.8,50.9,4281)},
+    {name="Colosseum", position=CFrame.new(-1427.6,7.2,-2792.7)},
+    {name="Sky Island", position=CFrame.new(-7894.6,5547.1,-380.2)},
+    {name="Prison", position=CFrame.new(4875.3,5.6,734.8)},
+    {name="Magma Village", position=CFrame.new(-5247.7,12.8,8504.9)},
+    {name="Under Water", position=CFrame.new(61163.8,11.6,1819.7)},
+    {name="Fountain City", position=CFrame.new(5127.1,59.5,4105.4)},
+}
+
+local islandCFramesSea2 = {
+    {name="Dark Area", position=CFrame.new(3780,22,-3498)},
+    {name="Dressrosa", position=CFrame.new(-394,123,1025)},
+    {name="Green Zone", position=CFrame.new(-2448,73,-3210)},
+    {name="Zombie Island", position=CFrame.new(-5622,492,-781)},
+    {name="Punk Hazard", position=CFrame.new(-6127,15,-5040)},
+    {name="Ice Castle", position=CFrame.new(6148,294,-6741)},
+    {name="Great Tree", position=CFrame.new(2681,1682,-7190)},
+}
+
+local islandCFramesSea3 = {
+    {name="Castle On The Sea", position=CFrame.new(-5075,314,-3150)},
+    {name="Port Town", position=CFrame.new(-301,20,5558)},
+    {name="Hydra Island", position=CFrame.new(5753,610,-282)},
+    {name="Floating Turtle", position=CFrame.new(-13274,531,-7579)},
+    {name="Haunted Castle", position=CFrame.new(-9515,164,5786)},
+    {name="Cake Island", position=CFrame.new(-1884,19,-11666)},
+    {name="Tiki Outpost", position=CFrame.new(-16542,55,1044)},
+}
+
+-- =========================
+-- FUNÇÕES
+-- =========================
+local function getSea()
+    if game.PlaceId == 2753915549 then return 1 end
+    if game.PlaceId == 4442272183 then return 2 end
+    if game.PlaceId == 7449423635 then return 3 end
+end
+
+local function removeIslandESP()
+    for _, v in pairs(workspace:GetChildren()) do
+        if v.Name == "IslandESP" then
+            v:Destroy()
+        end
+    end
+end
+
+local function createIslandESP(name, cf)
+    local part = Instance.new("Part")
+    part.Name = "IslandESP"
+    part.Size = Vector3.new(1,1,1)
+    part.Anchored = true
+    part.CanCollide = false
+    part.Transparency = 1
+    part.CFrame = cf
+    part.Parent = workspace
+
+    local gui = Instance.new("BillboardGui", part)
+    gui.Size = UDim2.new(0,200,0,40)
+    gui.StudsOffset = Vector3.new(0,5,0)
+    gui.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel", gui)
+    label.Size = UDim2.new(1,0,1,0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(170, 0, 255) -- ROXO
+    label.TextStrokeTransparency = 0
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 14
+
+    RunService.RenderStepped:Connect(function()
+        if not getgenv().IslandESP or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            part:Destroy()
+            return
+        end
+        local dist = math.floor((part.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+        label.Text = name .. " | " .. dist .. " M"
+    end)
+end
+
+local function createESPForCurrentSea()
+    removeIslandESP()
+    local sea = getSea()
+    local list = sea == 1 and islandCFramesSea1 or sea == 2 and islandCFramesSea2 or islandCFramesSea3
+    for _, island in pairs(list) do
+        createIslandESP(island.name, island.position)
+    end
+end
+
+-- =========================
+-- TOGGLE (TAB CORRETA)
+-- =========================
+local IslandToggle = PlayersTab:AddToggle({
+    Name = "Esp Island",
+    Description = "Mostrar <font color='rgb(170,0,255)'>ilhas</font> + distância",
+    Default = false
+})
+
+IslandToggle:Callback(function(Value)
+    getgenv().IslandESP = Value
+    if Value then
+        createESPForCurrentSea()
+    else
+        removeIslandESP()
+    end
+end)
+
+-- =========================
+-- SERVICES
+-- =========================
+local PlayersService = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = PlayersService.LocalPlayer
+
+-- =========================
+-- CONFIG
+-- =========================
+getgenv().ESPPlayersEnabled = false
+
+-- =========================
+-- FOLDER
+-- =========================
+local ESPFolder = Instance.new("Folder")
+ESPFolder.Name = "ESP_PLAYERS"
+ESPFolder.Parent = workspace
+
+-- =========================
+-- CLEAR ESP
+-- =========================
+local function ClearESPPlayers()
+    ESPFolder:ClearAllChildren()
+end
+
+-- =========================
+-- CREATE ESP
+-- =========================
+local function CreatePlayerESP(player)
+    if player == LocalPlayer then return end
+    if not player.Character then return end
+
+    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if ESPFolder:FindFirstChild(player.Name) then
+        return ESPFolder[player.Name]
+    end
+
+    -- BILLBOARD
+    local gui = Instance.new("BillboardGui")
+    gui.Name = player.Name
+    gui.Parent = ESPFolder
+    gui.Adornee = hrp
+    gui.Size = UDim2.new(0, 200, 0, 40) -- 🔹 MESMO TAMANHO ISLAND
+    gui.AlwaysOnTop = true
+    gui.MaxDistance = math.huge -- 🔥 DISTÂNCIA INFINITA
+
+    -- FOTO
+    local img = Instance.new("ImageLabel")
+    img.Parent = gui
+    img.Size = UDim2.new(0, 40, 0, 40)
+    img.Position = UDim2.new(0, 0, 0, 0)
+    img.BackgroundTransparency = 1
+
+    pcall(function()
+        img.Image = PlayersService:GetUserThumbnailAsync(
+            player.UserId,
+            Enum.ThumbnailType.HeadShot,
+            Enum.ThumbnailSize.Size420x420
+        )
+    end)
+
+    -- TEXTO
+    local txt = Instance.new("TextLabel")
+    txt.Parent = gui
+    txt.Size = UDim2.new(1, -45, 1, 0)
+    txt.Position = UDim2.new(0, 45, 0, 0)
+    txt.BackgroundTransparency = 1
+    txt.TextScaled = true
+    txt.Font = Enum.Font.GothamBold
+    txt.TextXAlignment = Enum.TextXAlignment.Left
+    txt.TextStrokeTransparency = 0
+    txt.TextColor3 = Color3.fromRGB(170, 0, 255) -- ROXO
+    txt.Text = player.Name .. " | 0 M"
+
+    return gui, txt
+end
+
+-- =========================
+-- UPDATE LOOP
+-- =========================
+RunService.RenderStepped:Connect(function()
+    if not getgenv().ESPPlayersEnabled then return end
+    if not LocalPlayer.Character then return end
+
+    local myHRP = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return end
+
+    for _, plr in pairs(PlayersService:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local _, txt = CreatePlayerESP(plr)
+                if txt then
+                    local dist = math.floor((hrp.Position - myHRP.Position).Magnitude)
+                    txt.Text = plr.Name .. " | " .. dist .. " M"
+                end
+            end
+        end
+    end
+end)
+
+-- =========================
+-- TOGGLE (TAB PLAYERS)
+-- =========================
+local ESPPlayersToggle = PlayersTab:AddToggle({
+    Name = "ESP Players",
+    Description = "Nome + Foto + Distância <font color='rgb(170,0,255)'>Players</font>",
+    Default = false
+})
+
+ESPPlayersToggle:Callback(function(Value)
+    getgenv().ESPPlayersEnabled = Value
+    if not Value then
+        ClearESPPlayers()
+    end
+end)
+
+-- ======================================================
+-- SERVICES
+-- ======================================================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LP = Players.LocalPlayer
+
+-- ======================================================
+-- CONFIG
+-- ======================================================
+getgenv().DevilFruitESP = false
+
+-- ======================================================
+-- LIMPAR ESP DAS FRUTAS
+-- ======================================================
+local function ClearFruitESP()
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BillboardGui") and v.Name == "FruitESP" then
+            v:Destroy()
+        end
+    end
+end
+
+-- ======================================================
+-- CRIAR ESP PARA UMA FRUTA
+-- ======================================================
+local function CreateFruitESP(fruit)
+    if not fruit:IsA("Tool") then return end
+    if not string.find(fruit.Name, "Fruit") then return end
+    if not fruit:FindFirstChild("Handle") then return end
+
+    local handle = fruit.Handle
+
+    if handle:FindFirstChild("FruitESP") then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "FruitESP"
+    billboard.Parent = handle
+    billboard.Adornee = handle
+    billboard.Size = UDim2.new(0, 260, 0, 45) -- TAMANHO GRANDE (IGUAL ISLAND)
+    billboard.AlwaysOnTop = true
+    billboard.MaxDistance = math.huge
+
+    local text = Instance.new("TextLabel")
+    text.Parent = billboard
+    text.Size = UDim2.new(1, 0, 1, 0)
+    text.BackgroundTransparency = 1
+    text.TextScaled = true
+    text.Font = Enum.Font.GothamBold
+    text.TextStrokeTransparency = 0
+    text.TextStrokeColor3 = Color3.new(0,0,0)
+    text.TextColor3 = Color3.fromRGB(170, 0, 255) -- ROXO
+    text.Text = fruit.Name .. " | 0 M"
+end
+
+-- ======================================================
+-- LOOP DE ATUALIZAÇÃO
+-- ======================================================
+RunService.RenderStepped:Connect(function()
+    if not getgenv().DevilFruitESP then return end
+    if not LP.Character or not LP.Character:FindFirstChild("HumanoidRootPart") then return end
+
+    local myHRP = LP.Character.HumanoidRootPart
+
+    for _, v in pairs(workspace:GetChildren()) do
+        pcall(function()
+            if v:IsA("Tool") and string.find(v.Name, "Fruit") then
+                CreateFruitESP(v)
+
+                local handle = v:FindFirstChild("Handle")
+                local esp = handle and handle:FindFirstChild("FruitESP")
+                local txt = esp and esp:FindFirstChildOfClass("TextLabel")
+
+                if handle and txt then
+                    local dist = math.floor((handle.Position - myHRP.Position).Magnitude)
+                    txt.Text = v.Name .. " | " .. dist .. " M"
+                end
+            end
+        end)
+    end
+end)
+
+-- ======================================================
+-- TOGGLE NO HUB (SEU PADRÃO)
+-- ======================================================
+local ESPFruitToggle = PlayersTab:AddToggle({
+    Name = "ESP Fruit",
+    Description = "Nome da fruta + Distância <font color='rgb(170,0,255)'>Frutas</font>",
+    Default = false
+})
+
+ESPFruitToggle:Callback(function(Value)
+    getgenv().DevilFruitESP = Value
+    if not Value then
+        ClearFruitESP()
+    end
+end)
+
+
 getgenv().BerryESP = false
 
 -- =========================
