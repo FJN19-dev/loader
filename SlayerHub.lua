@@ -4479,6 +4479,151 @@ end)
 end
 
 
+-- =========================
+-- Configurações
+-- =========================
+local TpDelay = 0.2
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local Enabled = false
+local ChestCounter = 0
+local FirstRun = true
+
+-- =========================
+-- Função para pegar o personagem
+-- =========================
+local function getCharacter()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    char:WaitForChild("HumanoidRootPart")
+    return char
+end
+
+-- =========================
+-- Ordena baús por distância
+-- =========================
+local function DistanceFromPlrSort(list)
+    local Root = getCharacter().HumanoidRootPart
+    table.sort(list, function(A, B)
+        return (Root.Position - A.Position).Magnitude < (Root.Position - B.Position).Magnitude
+    end)
+end
+
+-- =========================
+-- Coleta lista de baús válidos
+-- =========================
+local UncheckedChests = {}
+
+local function getChestsSorted()
+    if FirstRun then
+        FirstRun = false
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:find("Chest") then
+                table.insert(UncheckedChests, obj)
+            end
+        end
+    end
+
+    local chests = {}
+    for _, chest in pairs(UncheckedChests) do
+        if chest and chest.Parent and chest:FindFirstChild("TouchInterest") then
+            table.insert(chests, chest)
+        end
+    end
+
+    DistanceFromPlrSort(chests)
+    return chests
+end
+
+-- =========================
+-- Noclip
+-- =========================
+local function toggleNoclip(bool)
+    for _, p in pairs(getCharacter():GetChildren()) do
+        if p:IsA("BasePart") then
+            p.CanCollide = not bool
+        end
+    end
+end
+
+-- =========================
+-- TP instantâneo
+-- =========================
+local function Teleport(cf)
+    toggleNoclip(true)
+    local Root = getCharacter().HumanoidRootPart
+    Root.CFrame = cf + Vector3.new(0, 3, 0)
+    task.wait(0.15)
+    toggleNoclip(false)
+end
+
+-- =========================
+-- Anti-kick
+-- =========================
+task.spawn(function()
+    while task.wait(30) do
+        if Enabled then
+            pcall(function()
+                sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+            end)
+        end
+    end
+end)
+
+-- =========================
+-- Reset do personagem
+-- =========================
+local function resetCharacter()
+    ChestCounter = 0
+    task.wait(0.5)
+    LocalPlayer.Character:BreakJoints()
+    LocalPlayer.CharacterAdded:Wait()
+    task.wait(1)
+end
+
+-- =========================
+-- LOOP PRINCIPAL
+-- =========================
+local function main()
+    while Enabled do
+        local chests = getChestsSorted()
+
+        if #chests > 0 then
+            Teleport(chests[1].CFrame)
+
+            ChestCounter += 1
+            print("Baú coletado: " .. ChestCounter)
+
+            if ChestCounter >= 3 then
+                print("3 baús coletados — resetando personagem...")
+                resetCharacter()
+            end
+        else
+            print("Nenhum baú encontrado.")
+        end
+
+        task.wait(TpDelay)
+    end
+end
+
+-- =========================
+-- TOGGLE
+-- =========================
+local ChestTP = Sub:AddToggle({
+    Name = "Tp Baú (chance de kick)",
+    Description = "",
+    Default = false 
+})
+
+ChestTP:Callback(function(Value)
+    Enabled = Value
+
+    if Enabled then
+        print("Script ativado.")
+        task.spawn(main)
+    else
+        print("Script desativado.")
+        ChestCounter = 0
+    end
+end)
 
 
 -------Playerstab---
