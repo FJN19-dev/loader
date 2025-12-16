@@ -4758,6 +4758,7 @@ spawn(function()
         end
     end)
 end)
+end
 
 if World2 then
 local Toggle1 = Sub:AddToggle({
@@ -4881,6 +4882,7 @@ spawn(function()
         end
     end
 end)
+end
 ----- Quest ------
 
 
