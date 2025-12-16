@@ -3711,67 +3711,76 @@ if World2 then
 end
 
 
-local Toggle1 = Sub:AddToggle({
-  Name = "Auto Raid Pirata",
-  Description = "",
-  Default = false 
-})
-Toggle1:Callback(function(Value)
-    getgenv().AutoPirateRaid = Value
-    StopTween(getgenv().AutoPirateRaid)
-end)
+-- Auto Raid Pirata (somente Sea 3)
+if World3 then
+    local Toggle1 = Sub:AddToggle({
+        Name = "Auto Raid Pirata",
+        Description = "",
+        Default = false 
+    })
 
-task.spawn(function()
-    while task.wait(0.1) do
-        -- só executa se AutoPirateRaid estiver ativo e World3 existir
-        if getgenv().AutoPirateRaid and World3 then
-            pcall(function()
-                local CFrameBoss = CFrame.new(-5496.17432, 313.768921, -2841.53027)
-                local player = game.Players.LocalPlayer
-                local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")            
-                if not humanoidRootPart then return end
+    Toggle1:Callback(function(Value)
+        getgenv().AutoPirateRaid = Value
+        StopTween(getgenv().AutoPirateRaid)
+    end)
 
-                local distanceToBoss = (CFrame.new(-5539.311, 313.801, -2972.372).Position - humanoidRootPart.Position).Magnitude
+    task.spawn(function()
+        while task.wait(0.1) do
+            -- só executa se AutoPirateRaid estiver ativo e World3 existir
+            if getgenv().AutoPirateRaid and World3 then
+                pcall(function()
+                    local CFrameBoss = CFrame.new(-5496.17432, 313.768921, -2841.53027)
+                    local player = game.Players.LocalPlayer
+                    local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")            
+                    if not humanoidRootPart then return end
 
-                if distanceToBoss <= 500 then
-                    for _, enemy in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                        if getgenv().AutoPirateRaid and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                            local enemyDistance = (enemy.HumanoidRootPart.Position - humanoidRootPart.Position).Magnitude
-                            if enemyDistance < 2000 then
-                                repeat 
-                                    task.wait(0.1)
-                                    AutoHaki()
-                                    EquipWeapon(getgenv().SelectWeapon)
-                                    if enemy:FindFirstChild("HumanoidRootPart") then
-                                        enemy.HumanoidRootPart.CanCollide = false
-                                        topos(enemy.HumanoidRootPart.CFrame * Pos)
-                                    end
-                                    getgenv().StartMagnet = true
-                                until not enemy.Parent or enemy.Humanoid.Health <= 0 or not getgenv().AutoPirateRaid
+                    local distanceToBoss = (CFrame.new(-5539.311, 313.801, -2972.372).Position - humanoidRootPart.Position).Magnitude
+
+                    if distanceToBoss <= 500 then
+                        for _, enemy in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                            if getgenv().AutoPirateRaid and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                                local enemyDistance = (enemy.HumanoidRootPart.Position - humanoidRootPart.Position).Magnitude
+                                if enemyDistance < 2000 then
+                                    repeat 
+                                        task.wait(0.1)
+                                        AutoHaki()
+                                        EquipWeapon(getgenv().SelectWeapon)
+                                        if enemy:FindFirstChild("HumanoidRootPart") then
+                                            enemy.HumanoidRootPart.CanCollide = false
+                                            -- Teleporta 20 studs acima do inimigo
+                                            topos(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                                        end
+                                        getgenv().StartMagnet = true
+                                    until not enemy.Parent or enemy.Humanoid.Health <= 0 or not getgenv().AutoPirateRaid
+                                end
                             end
                         end
-                    end
-                else
-                    UnEquipWeapon(getgenv().SelectWeapon)
+                    else
+                        UnEquipWeapon(getgenv().SelectWeapon)
 
-                    if BypassTP then
-                        local distanceToCFrameBoss = (humanoidRootPart.Position - CFrameBoss.Position).Magnitude
-                        if distanceToCFrameBoss > 1500 then
-                            BTP(CFrameBoss)
-                        else
-                            topos(CFrameBoss)
+                        if BypassTP then
+                            local distanceToCFrameBoss = (humanoidRootPart.Position - CFrameBoss.Position).Magnitude
+                            if distanceToCFrameBoss > 1500 then
+                                BTP(CFrameBoss)
+                            else
+                                topos(CFrameBoss)
+                            end
                         end
+
+                        topos(CFrame.new(-5122, 315, -2963))
                     end
-
-                    topos(CFrame.new(-5122, 315, -2963))
-                end
-            end)
+                end)
+            end
         end
-    end
-end)
+    end)
+end
 
-local Section = Sub:AddSection({"Elite Hunter"})
+-- Section "Elite Hunter" somente no Sea 3 (World3)
+if World3 then
+    local Section = Sub:AddSection({"Elite Hunter"})
+end
 
+if World3 then 
 local Toggle1 = Sub:AddToggle({
     Name = "Auto Elite Hunter",
     Description = "",
@@ -3828,7 +3837,9 @@ Toggle1:Callback(function(Value)
         end)
     end
 end)
+end
 
+if World3 then 
 local Toggle1 = Sub:AddToggle({
   Name = "Hop Server Elite Hunter",
   Description = "",
@@ -3885,11 +3896,15 @@ spawn(function()
         end
     end
 end)
+end
 
+if World3 then 
 local Section = Sub:AddSection({"Ossos"})
+end
 
+if World3 then 
 local Paragraph = Sub:AddParagraph({"Farma Osso", "Se Você for Farma Osso Vai na aba Main e muda O modo de Farme Pra bone e Start farm"})
-
+end
 
 -- Toggle para AutoFarm Bone (sem dropdown)
 if World3 then  -- só cria o toggle se estiver no Sea 3
@@ -3987,8 +4002,29 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
     end)
 end
 
-
-
+if World3 then 
+local Toggle1 = Sub:AddToggle({
+  Name = "Auto Tente a sorte",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AutoTryLuck = Value
+    StopTween(getgenv().AutoTryLuck)  
+end)
+spawn(function()
+    while wait(0.5) do
+        if getgenv().AutoTryLuck and World3 then    
+            local targetPos = CFrame.new(-8652.99707, 143.450119, 6170.50879)
+            if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - targetPos.Position).magnitude > 5 then
+                topos(targetPos)
+                wait(0.5)
+            end
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("gravestoneEvent", 2)
+        end
+    end
+end)
+end
 -------Playerstab---
 
 -- Monta a lista de players
