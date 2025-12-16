@@ -2813,6 +2813,90 @@ Toggle1:Callback(function(Value)
     StopTween(getgenv().AutoFarm)
 end)
 
+local Toggle1 = Main:AddToggle({
+  Name = "Auto Level",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().AutoFarm = Value
+    StopTween(getgenv().AutoFarm)
+end)
+
+
+spawn(function()
+    while task.wait(0.5) do
+        if getgenv().AutoFarm then
+            pcall(function()
+                
+                CheckQuest()
+
+                local player = game:GetService("Players").LocalPlayer
+                local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+
+                if not humanoidRoot then return end
+                
+                local questGui = player.PlayerGui.Main.Quest
+                local questVisible = questGui.Visible
+                local questTitle = questGui.Container.QuestTitle.Title.Text
+                
+                -- Se a quest for diferente → abandona
+                if not string.find(questTitle, NameMon) then
+                    getgenv().StartMagnet = false
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+                end
+
+                -- Se não tiver quest ativa → inicia
+                if not questVisible then
+                    
+                    getgenv().StartMagnet = false
+                    CheckQuest()
+
+                    local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
+                    
+                    if distance > 1500 then                           -- Teleporte anti-kick
+                        BTP(CFrameQuest * CFrame.new(0, 25, 5))
+                    else
+                        topos(CFrameQuest)                             -- Tp normal
+                    end
+
+                    -- Quando chegar no NPC → inicia quest
+                    if (humanoidRoot.Position - CFrameQuest.Position).Magnitude < 20 then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
+                    end
+
+                else -- Se já tiver quest → ir matar NPCs
+                    
+                    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                        if mob:FindFirstChild("HumanoidRootPart") and 
+                           mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and 
+                           mob.Name == Mon then
+            
+                            repeat task.wait(0.1)
+                                AutoHaki()
+                                EquipWeapon(getgenv().SelectWeapon)
+
+                                -- Tp para o mob
+                                topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+
+                                mob.HumanoidRootPart.CanCollide = false
+                                mob.Humanoid.WalkSpeed = 0
+                                mob.Head.CanCollide = false
+                                getgenv().StartMagnet = true
+                                
+                                sethiddenproperty(player, "SimulationRadius", math.huge)
+
+                                ------------------------------------------------
+
+                            until not getgenv().AutoFarm or mob.Humanoid.Health <= 0 or not mob.Parent or not questGui.Visible
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
 
 local Players = game:GetService("Players")
 local VirtualUser = game:GetService("VirtualUser")
@@ -3801,6 +3885,11 @@ spawn(function()
         end
     end
 end)
+
+local Section = Sub:AddSection({"Ossos"})
+
+local Paragraph = Sub:AddParagraph({"Farma Osso", "Se Você for Farma Osso Vai na aba Main e muda O modo de Farme Pra bone e Start farm"})
+
 
 
 -------Playerstab---
