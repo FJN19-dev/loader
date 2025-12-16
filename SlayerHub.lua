@@ -3890,6 +3890,96 @@ local Section = Sub:AddSection({"Ossos"})
 
 local Paragraph = Sub:AddParagraph({"Farma Osso", "Se Você for Farma Osso Vai na aba Main e muda O modo de Farme Pra bone e Start farm"})
 
+-- Toggle para Auto Farm Bone (sem dropdown)
+if World3 then  -- só cria o toggle se estiver no Sea 3
+    local ToggleBones = Sub:AddToggle({
+        Name = "Auto Farm Bone",
+        Description = "Ativa o farm de Reborn Skeleton, Living Zombie, Demonic Soul e Posessed Mummy",
+        Default = false
+    })
+
+    ToggleBones:Callback(function(Value)
+        getgenv().AutoFarmBone = Value
+    end)
+
+    -- =========================
+    -- Posições dos inimigos
+    -- =========================
+    local Bone = {
+        ["Reborn Skeleton"] = CFrame.new(-8769.58984, 142.13063, 6055.27637),
+        ["Living Zombie"] = CFrame.new(-10156.4531, 138.652481, 5964.5752),
+        ["Demonic Soul"] = CFrame.new(-9525.17188, 172.13063, 6152.30566),
+        ["Posessed Mummy"] = CFrame.new(-9570.88281, 5.81831884, 6187.86279)
+    }
+    local BonePos = CFrame.new(-9506.234375, 172.130615234375, 6117.0771484375)
+
+    -- =========================
+    -- Loop unificado de AutoFarm
+    -- =========================
+    spawn(function()
+        while task.wait(0.1) do
+            if getgenv().AutoFarmBone and FarmMode == "Farm Bone" and World3 then
+                pcall(function()
+                    local enemies = game.Workspace.Enemies:GetChildren()
+                    local foundEnemy = false
+
+                    for _, v in pairs(enemies) do
+                        if Bone[v.Name] and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                            foundEnemy = true
+                            -- Trazer inimigo para você
+                            v.HumanoidRootPart.CFrame = Bone[v.Name]
+                            v.Head.CanCollide = false
+                            v.Humanoid.Sit = false
+                            v.Humanoid:ChangeState(11)
+                            task.wait(0.1)
+                            v.Humanoid:ChangeState(14)
+                            v.HumanoidRootPart.CanCollide = false
+                            v.Humanoid.JumpPower = 0
+                            v.Humanoid.WalkSpeed = 0
+                            local animator = v.Humanoid:FindFirstChild("Animator")
+                            if animator then animator:Destroy() end
+                            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
+
+                            -- Atacar inimigo
+                            repeat
+                                task.wait(0.1)
+                                AutoHaki()
+                                EquipWeapon(getgenv().SelectWeapon)
+                                v.HumanoidRootPart.CanCollide = false
+                                v.Humanoid.WalkSpeed = 0
+                                v.Head.CanCollide = false
+                                topos(v.HumanoidRootPart.CFrame * Pos)
+                            until not getgenv().AutoFarmBone or not v.Parent or v.Humanoid.Health <= 0
+                        end
+                    end
+
+                    if not foundEnemy then
+                        -- Se nenhum inimigo estiver presente, vai para a posição padrão
+                        if BypassTP then
+                            local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+                            if (playerPos - BonePos.Position).Magnitude > 1500 then
+                                BTP(BonePos)
+                            else
+                                topos(BonePos)
+                            end
+                        else
+                            topos(BonePos)
+                        end
+                        UnEquipWeapon(getgenv().SelectWeapon)
+                        getgenv().BonesBring = false
+                        topos(CFrame.new(-9515, 164, 5786))
+
+                        for _, v in pairs(game.ReplicatedStorage:GetChildren()) do
+                            if Bone[v.Name] then
+                                topos(v.HumanoidRootPart.CFrame * CFrame.new(2, 20, 2))
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end
 
 
 -------Playerstab---
