@@ -3569,48 +3569,79 @@ Toggle1:Callback(function(Value)
 end)
 
 
+-- ================================
+-- SERVICES
+-- ================================
+local PlayersService = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
-local Toggle1 = PlayersTab:AddToggle({
-  Name = "Toggle",
-  Description = "",
-  Default = false 
+local LocalPlayer = PlayersService.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- ================================
+-- CONFIG
+-- ================================
+getgenv().AimbotSkill = false
+getgenv().AimPart = "HumanoidRootPart" -- ou "Head"
+getgenv().AimDistance = 1500
+
+-- ================================
+-- TOGGLE (TAB PLAYERS)
+-- ================================
+local ToggleAimbot = PlayersTab:AddToggle({
+    Name = "Aimbot Skill (Players)",
+    Description = "Mira automática em Players",
+    Default = false
 })
-Toggle1:Callback(function(Value)
-  _G.AimMethod = Value
-end)
-task.spawn(function()
-  while task.wait() do
-    pcall(function()
-      if _G.AimMethod and ABmethod == "AimBots Skill" then
-        for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-          if v.Name == _G.PlayersList and v.Team ~= game.Players.LocalPlayer.Team then
-            MousePos = v.Character:FindFirstChild("HumanoidRootPart").Position       	  
-          end
-        end
-      end
-    end)
-  end
-end)
-task.spawn(function()
-  while task.wait() do
-    pcall(function()
-      if _G.AimMethod and ABmethod == "Auto Aimbots" then
-        local MaxDistance = math.huge
-        for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-          if v.Name ~= plr.Name and v.Team ~= game.Players.LocalPlayer.Team then
-            local Distance = v:DistanceFromCharacter(plr.Character.HumanoidRootPart.Position)
-            if Distance < MaxDistance then
-              MaxDistance = Distance
-              MousePos = v.Character:FindFirstChild("HumanoidRootPart").Position
-       	    end
-          end
-        end
-      end
-    end)
-  end
+
+ToggleAimbot:Callback(function(Value)
+    getgenv().AimbotSkill = Value
 end)
 
-local Section = Playerstab:AddSection({"Esp"})
+-- ================================
+-- FUNÇÃO: PLAYER MAIS PRÓXIMO DA CÂMERA
+-- ================================
+local function GetClosestPlayer()
+    local closestPart = nil
+    local shortest = math.huge
+
+    for _, plr in pairs(PlayersService:GetPlayers()) do
+        if plr ~= LocalPlayer
+            and plr.Character
+            and plr.Character:FindFirstChild(getgenv().AimPart)
+            and plr.Character:FindFirstChild("Humanoid")
+            and plr.Character.Humanoid.Health > 0
+            and plr.Team ~= LocalPlayer.Team then
+
+            local part = plr.Character[getgenv().AimPart]
+            local dist = (part.Position - Camera.CFrame.Position).Magnitude
+
+            if dist < shortest and dist <= getgenv().AimDistance then
+                shortest = dist
+                closestPart = part
+            end
+        end
+    end
+
+    return closestPart
+end
+
+-- ================================
+-- LOOP DO AIMBOT (SKILL)
+-- ================================
+RunService.RenderStepped:Connect(function()
+    if not getgenv().AimbotSkill then return end
+
+    local target = GetClosestPlayer()
+    if target then
+        Camera.CFrame = CFrame.new(
+            Camera.CFrame.Position,
+            target.Position
+        )
+    end
+end)
+
+local Section = PlayersTab:AddSection({"Esp"})
 
 getgenv().IslandESP = false
 
