@@ -5197,6 +5197,7 @@ task.spawn(function()
 end)
 end
 
+
 -------Playerstab---
 
 -- Monta a lista de players
@@ -5849,7 +5850,28 @@ task.spawn(function()
     end
 end)
 
-
+local Toggle1 = Fruit:AddToggle({
+  Name = "Teleporta Para Fruta",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().TweenFruit = Value
+end)
+-- // LOOP DO TP PARA FRUTA COM O NOVO TOGGLE
+spawn(function()
+    while task.wait(0.1) do
+        if getgenv().TweenFruit then
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Model") and string.find(obj.Name, "Fruit") then
+                    if obj:FindFirstChild("Handle") then
+                        topos(obj.Handle.CFrame * CFrame.new(0, 5, 0))
+                    end
+                end
+            end
+        end
+    end
+end)
 
 ------shop --------
 local codes = {
