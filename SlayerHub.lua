@@ -5195,11 +5195,6 @@ task.spawn(function()
         end)
     end
 end)
-end
-
-
-
-
 
 
 -------Playerstab---
@@ -5854,30 +5849,6 @@ task.spawn(function()
     end
 end)
 
-
-------- Fruit------
-local Section = Fruit:AddSection({"Fruta"})
-
-local Toggle1 = Fruit:AddToggle({
-    Name = "Girar Fruta",
-    Description = "",
-    Default = false
-})
-
-Toggle1:Callback(function(Value)
-    getgenv().RandomAuto = Value
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(2) -- DELAY OBRIGATÓRIO
-        if getgenv().RandomAuto then
-            pcall(function()
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Cousin", "Buy")
-            end)
-        end
-    end
-end)
 
 
 
