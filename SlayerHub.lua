@@ -5195,7 +5195,7 @@ task.spawn(function()
         end)
     end
 end)
-
+end
 
 -------Playerstab---
 
@@ -5848,8 +5848,6 @@ task.spawn(function()
         end)
     end
 end)
-
-
 
 
 
