@@ -5850,6 +5850,13 @@ task.spawn(function()
     end
 end)
 
+
+
+Fruit:AddButton({"Girar Fruta", function()
+  game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Cousin", "Buy")
+end})
+
+
 local Toggle1 = Fruit:AddToggle({
   Name = "Teleporta Para Fruta",
   Description = "",
