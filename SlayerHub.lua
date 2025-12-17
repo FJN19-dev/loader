@@ -349,12 +349,6 @@ else
 end
 
 
- local ToolTip = Equipped.ToolTip
-  if ToolTip == "Blox Fruit" then _tp(model.HumanoidRootPart.CFrame * CFrame.new(0,10,0) * CFrame.Angles(0,math.rad(90),0)) else _tp(model.HumanoidRootPart.CFrame * CFrame.new(0,30,0) * CFrame.Angles(0,math.rad(180),0))end
-  if RandomCFrame then wait(.5)_tp(model.HumanoidRootPart.CFrame * CFrame.new(0, 30, 25)) wait(.5)_tp(model.HumanoidRootPart.CFrame * CFrame.new(25, 30, 0)) wait(.5)_tp(model.HumanoidRootPart.CFrame * CFrame.new(-25, 30 ,0)) wait(.5)_tp(model.HumanoidRootPart.CFrame * CFrame.new(0, 30, 25)) wait(.5)_tp(model.HumanoidRootPart.CFrame * CFrame.new(-25, 30, 0))end
-  end
-end
-
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -1955,7 +1949,7 @@ function topos(Tween_Pos)
             and game:GetService("Players").LocalPlayer.Character.Humanoid.Health > 0 
             and game:GetService("Players").LocalPlayer.Character.HumanoidRootPart then
             if not TweenSpeed then
-                TweenSpeed = 350
+                TweenSpeed = 230
             end
             DefualtY = Tween_Pos.Y
             TargetY = Tween_Pos.Y
@@ -4936,11 +4930,138 @@ Toggle1:Callback(function(Value)
 end)
 end
 
+local Toggle1 = Sub:AddToggle({
+  Name = "Auto Coletar Berries",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+  _G.AutoBerry = Value 
+end)
+spawn(function()
+  while wait(0.1) do
+    if _G.AutoBerry then
+      local CollectionService= game:GetService("CollectionService")
+      local Players= game:GetService("Players")
+      local Player = Players.LocalPlayer
+      local BerryBush = CollectionService:GetTagged("BerryBush")      
+      local Distance, Nearest = math.huge      
+      for i = 1, #BerryBush do
+        local Bush = BerryBush[i]        
+        for AttributeName, BerryName in pairs(Bush:GetAttributes()) do
+          if not BerryArray or table.find(BerryArray, BerryName) then           
+            topos(Bush.Parent:GetPivot())
+            for i = 1, #BerryBush do
+            local Bush = BerryBush[i]        
+              for AttributeName, BerryName in pairs(Bush:GetChildren()) do
+                if not BerryArray or table.find(BerryArray, BerryName) then
+                  topos(BerryName.WorldPivot)
+                  fireproximityprompt(BerryName.ProximityPrompt,math.huge)
+                end
+              end
+            end      
+          end
+        end
+      end      
+    end
+  end
+end)
 ----- Quest ------
 local Section = Quest:AddSection({"Quests"})
 
+local Section = Quest:AddSection({"Itens"})
 
+function GetBP(ItemName)
+    local count = 0
+    local player = game.Players.LocalPlayer
 
+    for _,v in pairs(player.Backpack:GetChildren()) do
+        if v.Name == ItemName then
+            count += 1
+        end
+    end
+
+    if player.Character then
+        for _,v in pairs(player.Character:GetChildren()) do
+            if v.Name == ItemName then
+                count += 1
+        end
+        end
+    end
+
+    return count
+end
+
+if World2 then
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Dark Blade V3",
+    Description = "",
+    Default = false
+})
+
+Toggle1:Callback(function(Value)
+    getgenv().DarkBladev3 = Value
+    getgenv().AutoFarmChest = Value
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            if getgenv().DarkBladev3 and World2 then
+                local player = game.Players.LocalPlayer
+                local character = player.Character
+                local root = character and character:FindFirstChild("HumanoidRootPart")
+                if not root then return end
+
+                if GetBP("Dark Blade") < 1 then
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LoadItem","Dark Blade")
+                end
+
+                if GetBP("Fist of Darkness") >= 1 then
+                    getgenv().AutoFarmChest = false
+
+                    if not workspace.Enemies:FindFirstChild("Darkbeard") then
+                        topos(CFrame.new(3677.08203125, 62.751937866211, -3144.8332519531))
+                    else
+                        topos(CFrame.new(-5719.36376953125, 48.50590515136719, -782.9759521484375))
+                        fireclickdetector(workspace.Map.GraveIsland.Mountain.Rocks.Button.ClickDetector)
+                    end
+                else
+                    getgenv().AutoFarmChest = true
+                end
+            end
+        end)
+    end
+end)
+end
+
+if World3 then
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Cavendish Sword",
+    Description = "",
+    Default = false
+})
+
+Toggle1:Callback(function(Value)
+    getgenv().AutoCavendish = Value
+end)
+
+task.spawn(function()
+    while task.wait(0.2) do
+        pcall(function()
+            if getgenv().AutoCavendish then
+                local enemy = GetConnectionEnemies("Beautiful Pirate")
+
+                if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                    topos(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                else
+                    topos(CFrame.new(5283.609375, 22.56223487854, -110.78285217285))
+                end
+            end
+        end)
+    end
+end)
+end
 -------Playerstab---
 
 -- Monta a lista de players
