@@ -329,8 +329,7 @@ Window:AddMinimizeButton({
     local Settings = Window:MakeTab({ "Setting", "settings" })
     
 
-  redzlib:SetTheme("Purple")
-  
+
 -- =========================
 -- DETECTA SEA
 -- =========================
@@ -4883,6 +4882,51 @@ spawn(function()
                 end)
             end
         end
+    end
+end)
+end
+
+if World2 or World3 then
+local Toggle1 = Sub:AddToggle({
+  Name = "Auto Comprar Haki Color",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    getgenv().Auto_Buy_Enchancement = Value 
+end)
+spawn(function()
+    local lastCallTime = 0
+    while true do
+        if getgenv().Auto_Buy_Enchancement then
+            local currentTime = tick()
+            if currentTime - lastCallTime >= 2 then
+                lastCallTime = currentTime
+                local args = {
+                    [1] = "ColorsDealer",
+                    [2] = "2"
+                }
+                pcall(function()
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end)
+            end
+        end
+        wait(0.1)
+    end
+end)
+end
+
+local isHopping = false
+if World2 or World3 then
+local Toggle1 = Sub:AddToggle({
+  Name = "Hop Server [ Haki Cor Ou Esapada Lendaria]",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    isHopping = state
+    if isHopping then
+        Hop()
     end
 end)
 end
