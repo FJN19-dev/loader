@@ -5856,7 +5856,7 @@ end)
 
 
 ------- Fruit------
-local Fruit = Fruit:AddSection("Fruta")
+local Section = Fruit:AddSection({"Fruta"})
 
 local Toggle1 = Fruit:AddToggle({
   Name = "Girar Fruta",
