@@ -5299,7 +5299,193 @@ task.spawn(function()
 end)
 
 
+--Teleport
+-- Verificar qual Sea o jogador está
+local Sea1, Sea2, Sea3 = false, false, false
+if game.PlaceId == 2753915549 then
+    Sea1 = true
+elseif game.PlaceId == 4442272183 then
+    Sea2 = true
+elseif game.PlaceId == 7449423635 then
+    Sea3 = true
+else
+    game:GetService("Players").LocalPlayer:Kick("Do not Support, Please wait...")
+end
 
+local Section = Teleport:AddSection({"Move"})
+
+Teleport:AddButton({"Sea 1", function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
+end})
+
+Teleport:AddButton({"Sea 2", function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelDressrosa")
+end})
+
+Teleport:AddButton({"Sea 3", function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
+end})
+
+-- Lista de ilhas com base no Sea atual
+local IslandList = {}
+if Sea1 then
+    IslandList = {
+        "WindMill", "Marine", "Middle Town", "Jungle", "Pirate Village",
+        "Desert", "Snow Island", "MarineFord", "Colosseum", "Sky Island 1",
+        "Sky Island 2", "Sky Island 3", "Prison", "Magma Village",
+        "Under Water Island", "Fountain City", "Shank Room", "Mob Island",
+    }
+elseif Sea2 then
+    IslandList = {
+        "Café", "Frist Spot", "Dark Area", "Mansão Do Flamingo",
+        "Flamingo Room", "Green Zone", "Factory", "Coliseu",
+        "Cemitério", "Two Snow Mountain", "Quente e Frio", "Cursed Ship",
+        "Ice Castle", "Forgotten Island", "Ussop Island",
+    }
+elseif Sea3 then
+    IslandList = {
+        "Mansão", "Cidade Do Porto", "Grande Árvore", "Castelo Do Mar",
+        "MiniSky", "Ilha da Hydra", "Ilha da Tartaruga", "Castelo Assombrado",
+        "Ilha do Sorvete", "Ilha do Amendoim", "Ilha do Bolo", "Ilha do Cacau",
+        "Ilha do Doce", "Tiki Outpost",
+    }
+end
+
+
+local Dropdown = Teleport:AddDropdown({
+  Name = "Teleporte Island",
+  Description = "Select an island to teleport",
+  Options = IslandList,
+  Default = "1",
+  Flag = "Teleport",
+  Callback = function(Value)
+    _G.SelectedIsland = Value
+    print("Selected Island:", Value)  
+  end
+})
+
+-- Função de Teleporte com Tween
+function TeleportToPosition(Pos)
+    local Distance = (Pos.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    if game.Players.LocalPlayer.Character.Humanoid.Sit and not _G.KillShark and not _G.KillPiranha and not _G.KillTerrorShark and not _G.KillFishCrew then
+        game.Players.LocalPlayer.Character.Humanoid.Sit = false
+    end
+    pcall(function()
+        local tween = game:GetService("TweenService"):Create(
+            game.Players.LocalPlayer.Character.HumanoidRootPart,
+            TweenInfo.new(Distance/325, Enum.EasingStyle.Linear),
+            {CFrame = Pos}
+        )
+        tween:Play()
+        if Distance <= 250 or _G.StopTween then
+            tween:Cancel()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Pos
+            NoCLip = false
+        end
+    end)
+end
+
+
+Teleport:AddButton({"Teleporta Island", function()
+       if _G.SelectedIsland == "WindMill" then
+            TeleportToPosition(CFrame.new(979.79895, 16.5516224, 1429.04663))
+        elseif _G.SelectedIsland == "Marine" then
+            TeleportToPosition(CFrame.new(-2566.4296875, 6.8556680679321, 2045.2561035156))
+        elseif _G.SelectedIsland == "Middle Town" then
+            TeleportToPosition(CFrame.new(-690.33081054688, 15.09425163269, 1582.2380371094))
+        elseif _G.SelectedIsland == "Jungle" then
+            TeleportToPosition(CFrame.new(-1612.7957763672, 36.852081298828, 149.12843322754))
+        elseif _G.SelectedIsland == "Pirate Village" then
+            TeleportToPosition(CFrame.new(-1181.3093261719, 4.7514905929565, 3803.5456542969))
+        elseif _G.SelectedIsland == "Desert" then
+            TeleportToPosition(CFrame.new(944.15789794922, 20.919729232788, 4373.3002929688))
+        elseif _G.SelectedIsland == "Snow Island" then
+            TeleportToPosition(CFrame.new(1347.8067626953, 104.66806030273, -1319.7370605469))
+        elseif _G.SelectedIsland == "MarineFord" then
+            TeleportToPosition(CFrame.new(-4914.8212890625, 50.963626861572, 4281.0278320313))
+        elseif _G.SelectedIsland == "Colosseum" then
+            TeleportToPosition(CFrame.new(-1427.6203613281, 7.2881078720093, -2792.7722167969))
+        elseif _G.SelectedIsland == "Sky Island 1" then
+            TeleportToPosition(CFrame.new(-4869.1025390625, 733.46051025391, -2667.0180664063))
+        elseif _G.SelectedIsland == "Sky Island 2" then  
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-4607.82275, 872.54248, -1667.55688))
+        elseif _G.SelectedIsland == "Sky Island 3" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-7894.6176757813, 5547.1416015625, -380.29119873047))
+        elseif _G.SelectedIsland == "Prison" then
+            TeleportToPosition(CFrame.new(4875.330078125, 5.6519818305969, 734.85021972656))
+        elseif _G.SelectedIsland == "Magma Village" then
+            TeleportToPosition(CFrame.new(-5247.7163085938, 12.883934020996, 8504.96875))
+        elseif _G.SelectedIsland == "Under Water Island" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(61163.8515625, 11.6796875, 1819.7841796875))
+        elseif _G.SelectedIsland == "Fountain City" then
+            TeleportToPosition(CFrame.new(5127.1284179688, 59.501365661621, 4105.4458007813))
+        elseif _G.SelectedIsland == "Shank Room" then
+            TeleportToPosition(CFrame.new(-1442.16553, 29.8788261, -28.3547478))
+        elseif _G.SelectedIsland == "Mob Island" then
+            TeleportToPosition(CFrame.new(-2850.20068, 7.39224768, 5354.99268))
+        elseif _G.SelectedIsland == "Café" then
+            TeleportToPosition(CFrame.new(-377.284424, 73.0550919, 291.670776))
+        elseif _G.SelectedIsland == "Frist Spot" then
+            TeleportToPosition(CFrame.new(-11.311455726624, 29.276733398438, 2771.5224609375))
+        elseif _G.SelectedIsland == "Dark Area" then
+            TeleportToPosition(CFrame.new(3780.0302734375, 22.652164459229, -3498.5859375))
+        elseif _G.SelectedIsland == "Mansão Do Flamingo" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-281.93707275390625, 306.130615234375, 609.280029296875))
+        elseif _G.SelectedIsland == "Flamingo Room" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(2284.912109375, 15.152034759521484, 905.48291015625))
+        elseif _G.SelectedIsland == "Green Zone" then
+            TeleportToPosition(CFrame.new(-2448.5300292969, 73.016105651855, -3210.6306152344))
+        elseif _G.SelectedIsland == "Factory" then
+            TeleportToPosition(CFrame.new(424.12698364258, 211.16171264648, -427.54049682617))
+        elseif _G.SelectedIsland == "Coliseu" then
+            TeleportToPosition(CFrame.new(-1834.78308, 45.8297157, 1365.29724))
+        elseif _G.SelectedIsland == "Cemitério" then
+            TeleportToPosition(CFrame.new(-5622.033203125, 492.19604492188, -781.78552246094))
+        elseif _G.SelectedIsland == "Two Snow Mountain" then
+            TeleportToPosition(CFrame.new(753.14288330078, 408.23559570313, -5274.6147460938))
+        elseif _G.SelectedIsland == "Punk Hazard" then
+            TeleportToPosition(CFrame.new(-6127.654296875, 15.951762199402, -5040.2861328125))
+        elseif _G.SelectedIsland == "Cursed Ship" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(923.40197753906, 125.05712890625, 32885.875))
+        elseif _G.SelectedIsland == "Ice Castle" then
+            TeleportToPosition(CFrame.new(6148.4116210938, 294.38687133789, -6741.1166992188))
+        elseif _G.SelectedIsland == "Forgotten Island" then
+            TeleportToPosition(CFrame.new(-3032.7641601563, 317.89672851563, -10075.373046875))
+        elseif _G.SelectedIsland == "Ussop Island" then
+            TeleportToPosition(CFrame.new(4816.8618164063, 8.4599885940552, 2863.8195800781))
+        elseif _G.SelectedIsland == "Grande Árvore" then
+            TeleportToPosition(CFrame.new(2681.2736816406, 1682.8092041016, -7190.9853515625))
+        elseif _G.SelectedIsland == "Castelo Do Mar" then
+            TeleportToPosition(CFrame.new(-4993.75879, 314.555542, -2996.44507, -0.374604046, 2.25014496e-09, 0.92718488, -1.82605771e-11, 1, -2.43423437e-09, -0.92718488, -9.28805033e-10, -0.374604046))
+        elseif _G.SelectedIsland == "MiniSky" then
+            Tween2(CFrame.new(-260.65557861328, 49325.8046875, -35253.5703125))
+        elseif _G.SelectedIsland == "Cidade Do Porto" then
+            TeleportToPosition(CFrame.new(-301.832092, 20.6410122, 5558.41553))
+        elseif _G.SelectedIsland == "Ilha da Hydra" then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance",Vector3.new(5753.5478515625, 610.7880859375, -282.33172607421875))
+        elseif _G.SelectedIsland == "Ilha da Tartaruga" then
+            TeleportToPosition(CFrame.new(-13274.528320313, 531.82073974609, -7579.22265625))
+        elseif _G.SelectedIsland == "Mansão" then
+            TeleportToPosition(CFrame.new(-12468.4482, 374.954041, -7540.47461, -0.999880493, -1.46357868e-08, -0.0154578825, -1.45267256e-08, 1, -7.16764781e-09, 0.0154578825, -6.94223878e-09, -0.999880493))
+        elseif _G.SelectedIsland == "Castelo Assombrado" then
+            TeleportToPosition(CFrame.new(-9515.3720703125, 164.00624084473, 5786.0610351562))
+        elseif _G.SelectedIsland == "Ilha do Sorvete" then
+            TeleportToPosition(CFrame.new(-902.56817626953, 79.93204498291, -10988.84765625))
+        elseif _G.SelectedIsland == "Ilha do Amendoim" then
+            TeleportToPosition(CFrame.new(-2062.7475585938, 50.473892211914, -10232.568359375))
+        elseif _G.SelectedIsland == "Ilha do Bolo" then
+            TeleportToPosition(CFrame.new(-1884.7747802734375, 19.327526092529297, -11666.8974609375))
+        elseif _G.SelectedIsland == "Ilha do Cacau" then
+            TeleportToPosition(CFrame.new(87.94276428222656, 73.55451202392578, -12319.46484375))
+        elseif _G.SelectedIsland == "Ilha do Doce" then
+            TeleportToPosition(CFrame.new(-1014.4241943359375, 149.11068725585938, -14555.962890625))
+        elseif _G.SelectedIsland == "Tiki Outpost" then
+            TeleportToPosition(CFrame.new(-16542.447265625, 55.68632888793945, 1044.41650390625))
+        end
+end})
+
+
+local Section = Fruit:AddSection({"Fruta"})
 
 Fruit:AddButton({"Girar Fruta", function()
   game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Cousin", "Buy")
@@ -5555,14 +5741,16 @@ local function CreateStockGUI(title, advanced)
 	end)
 end
 
-Fruit:AddButton({"Open Normal Stock", function()
+Fruit:AddButton({"Ver Normal Stock", function()
         CreateStockGUI("🍏 Normal Fruit Stock", false)
 end})
 
-Fruit:AddButton({"Open Advanced Stock", function()
+Fruit:AddButton({"Ver Advanced Stock", function()
         CreateStockGUI("🔥 Advanced Fruit Stock", true)
 end})
 
+
+local Section = Fruit:AddSection({"Raid"})
 
 -- Dropdown Selecionar Chip
 local SelectChipDropdown = Fruit:AddDropdown({
@@ -5592,7 +5780,7 @@ end)
 
 
 local AutoBuyChipToggle = Fruit:AddToggle({
-    Name = "Auto Buy Chip",
+    Name = "Auto Comprar Chip",
     Description = "",
     Default = false
 })
@@ -5618,7 +5806,7 @@ end)
 -- Toggle Auto Start Raid
 local ToggleStartRaid = Fruit:AddToggle({
     Name = "Auto Start Raid",
-    Description = "Bắt Đầu Raid",
+    Description = "",
     Default = false
 })
 
@@ -5673,7 +5861,7 @@ end)
 
 -- Toggle
 local Toggle1 = Fruit:AddToggle({ 
-    Name = "Auto Farm Raid Next Island", 
+    Name = "Auto Farme Raid Next Island", 
     Description = "",
     Default = false 
 })
