@@ -5198,6 +5198,108 @@ end)
 end
 
 
+_G.AutoFishing = false
+_G.SelectedBait = "Basic Bait"
+_G.SelectedRod = "Fishing Rod"
+
+local Toggle1 = Fish:AddToggle({
+  Name = "Auto Fishing",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(v)
+    _G.AutoFishing = v
+end)
+
+local Dropdown = Fish:AddDropdown({
+  Name = "Seleciona Isca",
+  Description = "",
+  Options = {"Basic Bait","Kelp Bait","Good Bait","Abyssal Bait","Frozen Bait","Epic Bait","Carnivore Bait"},
+  Default = "Basic Bait",
+  Flag = "Isca",
+  Callback = function(v)
+     _G.SelectedBait = v
+    game.ReplicatedStorage.FishReplicated.FishingRequest:InvokeServer("SelectBait", v)   
+  end
+})
+
+local Dropdown = Fish:AddDropdown({
+  Name = "Seleciona Vara",
+  Description = "",
+  Options = {"Fishing Rod","Gold Rod","Shark Rod","Shell Rod","Treasure Rod"},
+  Default = "Fishing Rod",
+  Flag = "Rod",
+  Callback = function(v)
+    _G.SelectedRod = v    
+  end
+})
+
+
+-- ============================
+-- SISTEMA AUTO FISH
+-- ============================
+
+local plr = game.Players.LocalPlayer
+local fishFolder = game.ReplicatedStorage:WaitForChild("FishReplicated")
+local fishRequest = fishFolder:WaitForChild("FishingRequest")
+local waterHeight = require(game.ReplicatedStorage.Util.GetWaterHeightAtLocation)
+
+
+task.spawn(function()
+    while task.wait(0.15) do
+        if not _G.AutoFishing then continue end
+
+        local char = plr.Character
+        if not char then continue end
+        
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not (hrp and hum) then continue end
+
+        local tool = char:FindFirstChildOfClass("Tool")
+
+        -------------------------------------------------
+        -- AUTO EQUIP ROD
+        -------------------------------------------------
+        if not tool or tool.Name ~= _G.SelectedRod then
+            local rod = plr.Backpack:FindFirstChild(_G.SelectedRod)
+            if rod then
+                hum:EquipTool(rod)
+                task.wait(0.1)
+                tool = rod
+            else
+                continue
+            end
+        end
+
+        local state = tool:GetAttribute("State")
+        local serverState = tool:GetAttribute("ServerState")
+
+        -------------------------------------------------
+        -- AUTO CAST (jogar a linha SEM travas)
+        -------------------------------------------------
+        if state == "ReeledIn" or serverState == "ReeledIn" then
+            local forwardPos = hrp.Position + hrp.CFrame.LookVector * 60
+            forwardPos = Vector3.new(forwardPos.X, waterHeight(hrp.Position), forwardPos.Z)
+
+            fishRequest:InvokeServer("StartCasting")
+            task.wait(0.25)
+            fishRequest:InvokeServer("CastLineAtLocation", forwardPos, 100, true)
+        end
+
+        -------------------------------------------------
+        -- AUTO CATCH (puxar quando morder)
+        -------------------------------------------------
+        if serverState == "Biting" then
+            fishRequest:InvokeServer("Catching", true)
+            task.wait(0.2)
+            fishRequest:InvokeServer("Catch", 1)
+        end
+    end
+end)
+
+
+
 
 Fruit:AddButton({"Girar Fruta", function()
   game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Cousin", "Buy")
@@ -5224,6 +5326,135 @@ spawn(function()
                 end
             end
         end
+    end
+end)
+
+local Toggle1 = Fruit:AddToggle({
+    Name = "TP Fruta",
+    Description = "",
+    Default = false
+})
+
+Toggle1:Callback(function(Value)
+    getgenv().TPFruit = Value
+end)
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
+local function TPToPosition(targetCFrame)
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local HRP = Character:WaitForChild("HumanoidRootPart")
+    HRP.CFrame = targetCFrame * CFrame.new(0, 3, 0)
+end
+
+task.spawn(function()
+    while task.wait(0.3) do
+        if getgenv().TPFruit then
+            for _, v in pairs(workspace:GetChildren()) do
+                if v:IsA("Tool") and v:FindFirstChild("Handle") and v.Name:find("Fruit") then
+                    TPToPosition(v.Handle.CFrame)
+                end
+            end
+        end
+    end
+end)
+
+
+local Toggle1 = Fruit:AddToggle({
+    Name = "Auto Guardar",
+    Description = "",
+    Default = false
+})
+
+Toggle1:Callback(function(Value)
+    getgenv().AutoStoreFruits = Value
+end)
+
+local AutoStoreTask
+
+local function Get_Fruit(Fruit)
+    local fruitTable = {
+        ["Rocket Fruit"] = "Rocket-Rocket",
+        ["Spin Fruit"] = "Spin-Spin",
+        ["Chop Fruit"] = "Chop-Chop",
+        ["Spring Fruit"] = "Spring-Spring",
+        ["Bomb Fruit"] = "Bomb-Bomb",
+        ["Smoke Fruit"] = "Smoke-Smoke",
+        ["Spike Fruit"] = "Spike-Spike",
+        ["Flame Fruit"] = "Flame-Flame",
+        ["Eagle Fruit"] = "Eagle-Eagle",
+        ["Ice Fruit"] = "Ice-Ice",
+        ["Sand Fruit"] = "Sand-Sand",
+        ["Dark Fruit"] = "Dark-Dark",
+        ["Ghost Fruit"] = "Ghost-Ghost",
+        ["Diamond Fruit"] = "Diamond-Diamond",
+        ["Light Fruit"] = "Light-Light",
+        ["Rubber Fruit"] = "Rubber-Rubber",
+        ["Magma Fruit"] = "Magma-Magma",
+        ["Quake Fruit"] = "Quake-Quake",
+        ["Buddha Fruit"] = "Buddha-Buddha",
+        ["Love Fruit"] = "Love-Love",
+        ["Spider Fruit"] = "Spider-Spider",
+        ["Creation Fruit"] = "Creation-Creation",
+        ["Sound Fruit"] = "Sound-Sound",
+        ["Phoenix Fruit"] = "Phoenix-Phoenix",
+        ["Portal Fruit"] = "Portal-Portal",
+        ["Lightning Fruit"] = "Lightning-Lightning",
+        ["Pain Fruit"] = "Pain-Pain",
+        ["Blizzard Fruit"] = "Blizzard-Blizzard",
+        ["Gravity Fruit"] = "Gravity-Gravity",
+        ["Mammoth Fruit"] = "Mammoth-Mammoth",
+        ["Dough Fruit"] = "Dough-Dough",
+        ["Shadow Fruit"] = "Shadow-Shadow",
+        ["Venom Fruit"] = "Venom-Venom",
+        ["Control Fruit"] = "Control-Control",
+        ["Gas Fruit"] = "Gas-Gas",
+        ["Spirit Fruit"] = "Spirit-Spirit",
+        ["Tiger Fruit"] = "Tiger-Tiger",
+        ["Yeti Fruit"] = "Yeti-Yeti",
+        ["Kitsune Fruit"] = "Kitsune-Kitsune",
+        ["Dragon East Fruit"] = "Dragon-Dragon",
+        ["Dragon West Fruit"] = "Dragon-Dragon"
+    }
+    return fruitTable[Fruit]
+end
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if not getgenv().AutoStoreFruits then
+            AutoStoreTask = nil
+            continue
+        end
+
+        pcall(function()
+            if not Player.Character then return end
+
+            local function StoreIfNotStored(Fruit)
+                if Fruit:IsA("Tool") and Fruit:FindFirstChild("Fruit") then
+                    local fruitName = Get_Fruit(Fruit.Name)
+                    if fruitName then
+                        local stored = ReplicatedStorage.Remotes.CommF_:InvokeServer("CheckFruit", fruitName)
+                        if not stored then
+                            ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", fruitName, Fruit)
+                        end
+                    end
+                end
+            end
+
+            for _, Fruit in pairs(Player.Character:GetChildren()) do
+                StoreIfNotStored(Fruit)
+            end
+
+            for _, Fruit in pairs(Player.Backpack:GetChildren()) do
+                StoreIfNotStored(Fruit)
+            end
+        end)
     end
 end)
 
