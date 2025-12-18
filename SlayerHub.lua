@@ -5198,6 +5198,103 @@ end)
 end
 
 
+local Toggle1 = Fruit:AddToggle({
+    Name = "Auto Guardar",
+    Description = "",
+    Default = false
+})
+
+Toggle1:Callback(function(Value)
+    getgenv().AutoStoreFruits = Value
+end)
+
+local AutoStoreTask
+
+local function Get_Fruit(Fruit)
+    local fruitTable = {
+        ["Rocket Fruit"] = "Rocket-Rocket",
+        ["Spin Fruit"] = "Spin-Spin",
+        ["Chop Fruit"] = "Chop-Chop",
+        ["Spring Fruit"] = "Spring-Spring",
+        ["Bomb Fruit"] = "Bomb-Bomb",
+        ["Smoke Fruit"] = "Smoke-Smoke",
+        ["Spike Fruit"] = "Spike-Spike",
+        ["Flame Fruit"] = "Flame-Flame",
+        ["Eagle Fruit"] = "Eagle-Eagle",
+        ["Ice Fruit"] = "Ice-Ice",
+        ["Sand Fruit"] = "Sand-Sand",
+        ["Dark Fruit"] = "Dark-Dark",
+        ["Ghost Fruit"] = "Ghost-Ghost",
+        ["Diamond Fruit"] = "Diamond-Diamond",
+        ["Light Fruit"] = "Light-Light",
+        ["Rubber Fruit"] = "Rubber-Rubber",
+        ["Magma Fruit"] = "Magma-Magma",
+        ["Quake Fruit"] = "Quake-Quake",
+        ["Buddha Fruit"] = "Buddha-Buddha",
+        ["Love Fruit"] = "Love-Love",
+        ["Spider Fruit"] = "Spider-Spider",
+        ["Creation Fruit"] = "Creation-Creation",
+        ["Sound Fruit"] = "Sound-Sound",
+        ["Phoenix Fruit"] = "Phoenix-Phoenix",
+        ["Portal Fruit"] = "Portal-Portal",
+        ["Lightning Fruit"] = "Lightning-Lightning",
+        ["Pain Fruit"] = "Pain-Pain",
+        ["Blizzard Fruit"] = "Blizzard-Blizzard",
+        ["Gravity Fruit"] = "Gravity-Gravity",
+        ["Mammoth Fruit"] = "Mammoth-Mammoth",
+        ["Dough Fruit"] = "Dough-Dough",
+        ["Shadow Fruit"] = "Shadow-Shadow",
+        ["Venom Fruit"] = "Venom-Venom",
+        ["Control Fruit"] = "Control-Control",
+        ["Gas Fruit"] = "Gas-Gas",
+        ["Spirit Fruit"] = "Spirit-Spirit",
+        ["Tiger Fruit"] = "Tiger-Tiger",
+        ["Yeti Fruit"] = "Yeti-Yeti",
+        ["Kitsune Fruit"] = "Kitsune-Kitsune",
+        ["Dragon East Fruit"] = "Dragon-Dragon",
+        ["Dragon West Fruit"] = "Dragon-Dragon"
+    }
+    return fruitTable[Fruit]
+end
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if not getgenv().AutoStoreFruits then
+            AutoStoreTask = nil
+            continue
+        end
+
+        pcall(function()
+            if not Player.Character then return end
+
+            local function StoreIfNotStored(Fruit)
+                if Fruit:IsA("Tool") and Fruit:FindFirstChild("Fruit") then
+                    local fruitName = Get_Fruit(Fruit.Name)
+                    if fruitName then
+                        local stored = ReplicatedStorage.Remotes.CommF_:InvokeServer("CheckFruit", fruitName)
+                        if not stored then
+                            ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", fruitName, Fruit)
+                        end
+                    end
+                end
+            end
+
+            for _, Fruit in pairs(Player.Character:GetChildren()) do
+                StoreIfNotStored(Fruit)
+            end
+
+            for _, Fruit in pairs(Player.Backpack:GetChildren()) do
+                StoreIfNotStored(Fruit)
+            end
+        end)
+    end
+end)
+
 -------Playerstab---
 
 -- Monta a lista de players
@@ -5880,99 +5977,6 @@ spawn(function()
     end
 end)
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Player = Players.LocalPlayer
-
-getgenv().AutoStoreFruits = false
-
-local FruitMap = {
-    ["Rocket Fruit"] = "Rocket-Rocket",
-    ["Spin Fruit"] = "Spin-Spin",
-    ["Chop Fruit"] = "Chop-Chop",
-    ["Spring Fruit"] = "Spring-Spring",
-    ["Bomb Fruit"] = "Bomb-Bomb",
-    ["Smoke Fruit"] = "Smoke-Smoke",
-    ["Spike Fruit"] = "Spike-Spike",
-    ["Flame Fruit"] = "Flame-Flame",
-    ["Eagle Fruit"] = "Eagle-Eagle",
-    ["Ice Fruit"] = "Ice-Ice",
-    ["Sand Fruit"] = "Sand-Sand",
-    ["Dark Fruit"] = "Dark-Dark",
-    ["Ghost Fruit"] = "Ghost-Ghost",
-    ["Diamond Fruit"] = "Diamond-Diamond",
-    ["Light Fruit"] = "Light-Light",
-    ["Rubber Fruit"] = "Rubber-Rubber",
-    ["Barrier Fruit"] = "Barrier-Barrier",
-    ["Magma Fruit"] = "Magma-Magma",
-    ["Quake Fruit"] = "Quake-Quake",
-    ["Buddha Fruit"] = "Buddha-Buddha",
-    ["Love Fruit"] = "Love-Love",
-    ["Spider Fruit"] = "Spider-Spider",
-    ["Sound Fruit"] = "Sound-Sound",
-    ["Phoenix Fruit"] = "Phoenix-Phoenix",
-    ["Portal Fruit"] = "Portal-Portal",
-    ["Rumble Fruit"] = "Rumble-Rumble",
-    ["Pain Fruit"] = "Pain-Pain",
-    ["Blizzard Fruit"] = "Blizzard-Blizzard",
-    ["Gravity Fruit"] = "Gravity-Gravity",
-    ["Mammoth Fruit"] = "Mammoth-Mammoth",
-    ["Dough Fruit"] = "Dough-Dough",
-    ["Shadow Fruit"] = "Shadow-Shadow",
-    ["Venom Fruit"] = "Venom-Venom",
-    ["Control Fruit"] = "Control-Control",
-    ["Gas Fruit"] = "Gas-Gas",
-    ["Spirit Fruit"] = "Spirit-Spirit",
-    ["Leopard Fruit"] = "Leopard-Leopard",
-    ["Yeti Fruit"] = "Yeti-Yeti",
-    ["Kitsune Fruit"] = "Kitsune-Kitsune",
-    ["Dragon East Fruit"] = "Dragon-Dragon",
-    ["Dragon West Fruit"] = "Dragon-Dragon"
-}
-
-local Toggle1 = Fruit:AddToggle({
-    Name = "Guarda Fruta",
-    Default = false
-})
-
-task.spawn(function()
-    while true do
-        task.wait(1)
-        if not getgenv().AutoStoreFruits then continue end
-        if not Player.Character then continue end
-
-        local function check(tool)
-            if tool:IsA("Tool") then
-                local fruitId = FruitMap[tool.Name]
-                if fruitId then
-                    local stored = ReplicatedStorage.Remotes.CommF_:InvokeServer(
-                        "CheckFruit",
-                        fruitId
-                    )
-                    if not stored then
-                        ReplicatedStorage.Remotes.CommF_:InvokeServer(
-                            "StoreFruit",
-                            fruitId,
-                            tool
-                        )
-                    end
-                end
-            end
-        end
-
-        for _, v in pairs(Player.Backpack:GetChildren()) do
-            check(v)
-        end
-
-        for _, v in pairs(Player.Character:GetChildren()) do
-            check(v)
-        end
-    end
-end)
-
-Toggle1:Callback(function(Value)
-    getgenv().AutoStoreFruits = Value
-end)
 
 
 ------shop --------
