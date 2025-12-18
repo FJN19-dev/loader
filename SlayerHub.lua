@@ -5458,7 +5458,110 @@ task.spawn(function()
     end
 end)
 
+local Section = Fruit:AddSection({"Ver Stock"})
 
+local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+local Remote = game.ReplicatedStorage.Remotes.CommF_
+
+local function FormatNumber(num)
+	num = tostring(num)
+	return num:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
+end
+
+-- Função para criar uma GUI com o Stock
+local function CreateStockGUI(title, advanced)
+	local Gui = Instance.new("ScreenGui", PlayerGui)
+	Gui.Name = title .. "_StockGUI"
+
+	local Frame = Instance.new("Frame", Gui)
+	Frame.Size = UDim2.new(0, 300, 0, 350)
+	Frame.Position = UDim2.new(0.5, -150, 0.5, -175)
+	Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	Frame.BorderSizePixel = 0
+	Instance.new("UICorner", Frame)
+
+	local Label = Instance.new("TextLabel", Frame)
+	Label.Size = UDim2.new(1, 0, 0, 35)
+	Label.BackgroundTransparency = 1
+	Label.Text = title
+	Label.TextColor3 = Color3.fromRGB(255,255,255)
+	Label.Font = Enum.Font.GothamBold
+	Label.TextSize = 18
+
+	local Content = Instance.new("TextLabel", Frame)
+	Content.Position = UDim2.new(0, 10, 0, 40)
+	Content.Size = UDim2.new(1, -20, 1, -50)
+	Content.BackgroundTransparency = 1
+	Content.TextColor3 = Color3.fromRGB(200,200,200)
+	Content.Font = Enum.Font.Gotham
+	Content.TextSize = 14
+	Content.TextWrapped = true
+	Content.TextXAlignment = Enum.TextXAlignment.Left
+	Content.TextYAlignment = Enum.TextYAlignment.Top
+	Content.Text = "Loading..."
+
+	-- Botão fechar
+	local Close = Instance.new("TextButton", Frame)
+	Close.Size = UDim2.new(0, 30, 0, 30)
+	Close.Position = UDim2.new(1, -35, 0, 5)
+	Close.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+	Close.Text = "X"
+	Close.TextColor3 = Color3.new(1,1,1)
+	Close.Font = Enum.Font.GothamBold
+	Close.TextSize = 14
+	Instance.new("UICorner", Close)
+
+	Close.MouseButton1Click:Connect(function()
+		Gui:Destroy()
+	end)
+
+	-- Função para atualizar
+	local function UpdateStock()
+		local text = ""
+
+		local ok, result = pcall(function()
+			if advanced then
+				return Remote:InvokeServer("GetFruits", true)
+			else
+				return Remote:InvokeServer("GetFruits")
+			end
+		end)
+
+		if ok and result then
+			for _, fruit in pairs(result) do
+				if fruit.OnSale then
+					text = text .. "• " .. fruit.Name .. " — $" .. FormatNumber(fruit.Price) .. "\n"
+				end
+			end
+		else
+			text = "Error loading stock."
+		end
+
+		if text == "" then
+			text = "Nenhuma fruta disponível."
+		end
+
+		Content.Text = text
+	end
+
+	UpdateStock()
+
+	-- Atualiza a cada 60s
+	task.spawn(function()
+		while Gui.Parent do
+			task.wait(60)
+			UpdateStock()
+		end
+	end)
+end
+
+Fruit:AddButton({"Open Normal Stock", function()
+        CreateStockGUI("🍏 Normal Fruit Stock", false)
+end})
+
+Fruit:AddButton({"Open Advanced Stock", function()
+        CreateStockGUI("🔥 Advanced Fruit Stock", true)
+end})
 
 ------shop --------
 local codes = {
