@@ -5563,6 +5563,114 @@ Fruit:AddButton({"Open Advanced Stock", function()
         CreateStockGUI("🔥 Advanced Fruit Stock", true)
 end})
 
+
+-- Dropdown Selecionar Chip
+local SelectChipDropdown = Fruit:AddDropdown({
+    Name = "Selecionar Chip",
+    Description = "",
+    Options = {
+        "Flame",
+        "Ice",
+        "Sand",
+        "Dark",
+        "Light",
+        "Magma",
+        "Quake",
+        "Buddha",
+        "Spider",
+        "Phoenix",
+        "Lightning",
+        "Dough"
+    },
+    Default = "Flame",
+    Flag = "SelectChip",
+})
+
+SelectChipDropdown:Callback(function(Value)
+    _G.SelectChip = Value
+end)
+
+
+local AutoBuyChipToggle = Fruit:AddToggle({
+    Name = "Auto Buy Chip",
+    Description = "",
+    Default = false
+})
+
+AutoBuyChipToggle:Callback(function(Value)
+    _G.AutoBuyChip = Value
+end)
+task.spawn(function()
+    while task.wait(1) do
+        if _G.AutoBuyChip and _G.SelectChip then
+            pcall(function()
+                game.ReplicatedStorage.Remotes.CommF_:InvokeServer(
+                    "RaidsNpc",
+                    "Select",
+                    _G.SelectChip
+                )
+            end)
+        end
+    end
+end)
+
+
+-- Toggle Auto Start Raid
+local ToggleStartRaid = Fruit:AddToggle({
+    Name = "Auto Start Raid",
+    Description = "Bắt Đầu Raid",
+    Default = false
+})
+
+ToggleStartRaid:Callback(function(Value)
+    _G.StartRaid = Value
+end)
+
+-- Loop Auto Start Raid
+task.spawn(function()
+    while task.wait(0.5) do
+        if not _G.StartRaid then
+            continue
+        end
+
+        pcall(function()
+            local player = game.Players.LocalPlayer
+            local gui = player.PlayerGui:FindFirstChild("Main")
+            if not gui then return end
+
+            local hasChip =
+                player.Backpack:FindFirstChild("Special Microchip")
+                or (player.Character and player.Character:FindFirstChild("Special Microchip"))
+
+            -- Só inicia se não tiver raid ativa
+            if not gui.Timer.Visible
+            and not workspace._WorldOrigin.Locations:FindFirstChild("Island 1")
+            and hasChip then
+
+                if World2 then
+                    topos(CFrame.new(-6438.73, 250.64, -4501.5))
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer("SetSpawnPoint")
+                    fireclickdetector(
+                        workspace.Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector
+                    )
+
+                elseif World3 then
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer(
+                        "requestEntrance",
+                        Vector3.new(-5075.5, 314.51, -3150.02)
+                    )
+                    topos(CFrame.new(-5017.4, 314.84, -2823.01))
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer("SetSpawnPoint")
+                    fireclickdetector(
+                        workspace.Map["Boat Castle"].RaidSummon2.Button.Main.ClickDetector
+                    )
+                end
+            end
+        end)
+    end
+end)
+
+
 -- Toggle
 local Toggle1 = Fruit:AddToggle({ 
     Name = "Auto Farm Raid Next Island", 
