@@ -5563,6 +5563,85 @@ Fruit:AddButton({"Open Advanced Stock", function()
         CreateStockGUI("🔥 Advanced Fruit Stock", true)
 end})
 
+-- Toggle
+local Toggle1 = Fruit:AddToggle({ 
+    Name = "Auto Farm Raid Next Island", 
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.Dungeon = Value
+end)
+
+-- Retorna a ilha mais próxima pelo ID
+local function GetIsland(id)
+    local closest, dist = nil, math.huge
+
+    for _, island in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
+        if island.Name == "Island " .. id then
+            local mag = (island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if mag < dist then
+                dist = mag
+                closest = island
+            end
+        end
+    end
+
+    return closest
+end
+
+-- Procura a próxima ilha válida (5 → 1)
+local function GetNextIsland()
+    for i = 5, 1, -1 do
+        local island = GetIsland(i)
+        if island then
+            local mag = (island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if mag <= 4500 then
+                return island
+            end
+        end
+    end
+end
+
+-- Farmar inimigos
+local function FarmEnemies()
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if not _G.Dungeon then return end
+
+        if mob:FindFirstChild("HumanoidRootPart") 
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0 then
+
+            local dist = (mob.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= 1000 then
+                repeat
+                    task.wait(0.1)
+                    EquipWeapon(getgenv().SelectWeapon)
+                    topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
+                until not _G.Dungeon 
+                or not mob.Parent 
+                or mob.Humanoid.Health <= 0
+            end
+        end
+    end
+end
+
+-- Loop principal
+task.spawn(function()
+    while task.wait(0.3) do
+        if _G.Dungeon then
+            FarmEnemies()
+
+            local island = GetNextIsland()
+            if island then
+                topos(island.CFrame * CFrame.new(0, 60, 0))
+            end
+        end
+    end
+end)
+
+
 ------shop --------
 local codes = {
     "WildDares",
