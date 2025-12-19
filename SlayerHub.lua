@@ -3032,14 +3032,14 @@ Q:OnChanged(function(Value)
   _G.AutoPole = Value
 end)
 spawn(function()
-  while wait(Sec) do
+  while wait(0.2) do
     if _G.AutoPole then
       pcall(function()
         local v = GetConnectionEnemies("Thunder God")
 	    if v then
-          repeat task.wait() Attack.Kill(v, _G.AutoPole) until not _G.AutoPole or not v.Parent or v.Humanoid.Health <= 0
+          repeat task.wait()(v, _G.AutoPole) until not _G.AutoPole or not v.Parent or v.Humanoid.Health <= 0
         else
-          _tp(CFrame.new(-7994.984375, 5761.025390625, -2088.6479492188))
+          topos(CFrame.new(-7994.984375, 5761.025390625, -2088.6479492188))
         end
       end)
     end
