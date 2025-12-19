@@ -116,11 +116,6 @@ function topos(Tween_Pos)
     end)
 end
 
--------------------------------------------------
--- CONFIG
--------------------------------------------------
-local NameBoss = "Thunder God"
-local CFrameBoss = CFrame.new(-7994.984375, 5761.025390625, -2088.6479492188)
 
 -------------------------------------------------
 -- TOGGLE
@@ -136,47 +131,55 @@ Toggle1:Callback(function(Value)
 end)
 
 -------------------------------------------------
+-- CONFIG
+-------------------------------------------------
+local ThunderStartCFrame = CFrame.new(
+    -7994.984375,
+    5761.025390625,
+    -2088.6479492188
+)
+
+-------------------------------------------------
 -- LOOP PRINCIPAL
 -------------------------------------------------
 task.spawn(function()
     while task.wait(0.1) do
         if _G.Thunder then
             pcall(function()
-
                 local player = game.Players.LocalPlayer
                 local char = player.Character or player.CharacterAdded:Wait()
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
 
+                -- 🔹 IR PARA O LOCAL DO THUNDER GOD PRIMEIRO
+                topos(ThunderStartCFrame)
+                task.wait(0.5)
+
                 local enemies = workspace:FindFirstChild("Enemies")
                 if not enemies then return end
 
-                -- PROCURA O BOSS
-                local boss
-                for _, v in pairs(enemies:GetChildren()) do
-                    if string.find(v.Name, NameBoss) then
-                        boss = v
-                        break
-                    end
-                end
+                local boss = enemies:FindFirstChild("Thunder God")
+                if not boss then return end
 
-                -- SE O BOSS EXISTIR → SOBE NELE
-                if boss
-                and boss:FindFirstChild("HumanoidRootPart")
+                if boss:FindFirstChild("HumanoidRootPart")
                 and boss:FindFirstChild("Humanoid")
                 and boss.Humanoid.Health > 0 then
 
-                    if getgenv().SelectWeapon then
-                        EquipWeapon(getgenv().SelectWeapon)
-                    end
+                    repeat
+                        task.wait(0.05)
 
-                    topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-                    return
+                        if not _G.Thunder then break end
+
+                        if getgenv().SelectWeapon then
+                            EquipWeapon(getgenv().SelectWeapon)
+                        end
+
+                        -- 🔹 FICAR SEMPRE 20 STUDS ACIMA DO BOSS
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+
+                    until boss.Humanoid.Health <= 0
+                    or not boss.Parent
                 end
-
-                -- SE NÃO EXISTIR → VAI PRO CFRAME DO BOSS
-                topos(CFrameBoss * CFrame.new(0, 20, 0))
-
             end)
         end
     end
