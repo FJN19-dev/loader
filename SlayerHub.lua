@@ -3781,62 +3781,16 @@ if World3 then
     local Section = Sub:AddSection({"Elite Hunter"})
 end
 
-if World3 then 
+if World3 then
 local Toggle1 = Sub:AddToggle({
-    Name = "Auto Elite Hunter",
-    Description = "",
-    Default = false
+  Name = "Auto Elite Hunter",
+  Description = "",
+  Default = false 
 })
-
 Toggle1:Callback(function(Value)
-    _G.AutoElite = Value
-
-    if Value then
-        spawn(function()
-            while _G.AutoElite do
-                pcall(function()
-                    local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
-                    local workspaceEnemies = game:GetService("Workspace").Enemies
-                    local replicatedStorage = game:GetService("ReplicatedStorage")
-                    
-                    if playerGui.Main.Quest.Visible then
-                        local questTitle = playerGui.Main.Quest.Container.QuestTitle.Title.Text
-                        if string.find(questTitle, "Diablo") or string.find(questTitle, "Deandre") or string.find(questTitle, "Urban") then
-                            for _, v in pairs(workspaceEnemies:GetChildren()) do
-                                if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
-                                    if v.Name == "Diablo" or v.Name == "Deandre" or v.Name == "Urban" then
-                                        repeat wait(0)
-                                            EquipTool(SelectWeapon)
-                                            AutoHaki()
-                                            toTarget(v.HumanoidRootPart.CFrame * CFrame.new(posX, posY, posZ))
-                                            MonsterPosition = v.HumanoidRootPart.CFrame
-                                            v.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame
-                                            v.Humanoid.JumpPower = 0
-                                            v.Humanoid.WalkSpeed = 0
-                                            v.HumanoidRootPart.CanCollide = false
-                                            v.HumanoidRootPart.Size = Vector3.new(1,1,1)
-                                        until not _G.AutoElite or v.Humanoid.Health <= 0 or not v.Parent
-                                    end
-                                end
-                            end
-                        else
-                            -- Se o inimigo não estiver no Workspace
-                            local targets = {"Diablo", "Deandre", "Urban"}
-                            for _, name in pairs(targets) do
-                                if workspaceEnemies:FindFirstChild(name) then
-                                    toTarget(workspaceEnemies[name].HumanoidRootPart.CFrame * CFrame.new(posX,posY,posZ))
-                                elseif replicatedStorage:FindFirstChild(name) then
-                                    toTarget(replicatedStorage[name].HumanoidRootPart.CFrame * CFrame.new(posX,posY,posZ))
-                                end
-                            end
-                        end
-                    else
-                        replicatedStorage.Remotes.CommF_:InvokeServer("EliteHunter")
-                    end
-                end)
-            end
-        end)
-    end
+    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+    getgenv().AutoEliteHunter = Value
+    StopTween(getgenv().AutoEliteHunter) 
 end)
 end
 
@@ -5344,7 +5298,7 @@ elseif Sea2 then
     }
 elseif Sea3 then
     IslandList = {
-        "Mansão", "Cidade Do Porto", "Grande Árvore", "Castelo Do Mar",
+        "Mansão", "Cidade Do Porto","Dragon Dojo","Grande Árvore", "Castelo Do Mar",
         "MiniSky", "Ilha da Hydra", "Ilha da Tartaruga", "Castelo Assombrado",
         "Ilha do Sorvete", "Ilha do Amendoim", "Ilha do Bolo", "Ilha do Cacau",
         "Ilha do Doce", "Tiki Outpost",
@@ -5356,7 +5310,7 @@ local Dropdown = Teleport:AddDropdown({
   Name = "Teleporte Island",
   Description = "Select an island to teleport",
   Options = IslandList,
-  Default = "1",
+  Default = "",
   Flag = "Teleport",
   Callback = function(Value)
     _G.SelectedIsland = Value
@@ -5481,6 +5435,8 @@ Teleport:AddButton({"Teleporta Island", function()
             TeleportToPosition(CFrame.new(-1014.4241943359375, 149.11068725585938, -14555.962890625))
         elseif _G.SelectedIsland == "Tiki Outpost" then
             TeleportToPosition(CFrame.new(-16542.447265625, 55.68632888793945, 1044.41650390625))
+        elseif _G.SelectedIsland == "Dragon Dojo" then
+            TeleportToPosition(CFrame.new(5686.61377, 1206.85498, 899.379883, -0.256126314, -2.43622562e-08, -0.966643333, 2.83967623e-08, 1, -3.27270797e-08, 0.966643333, -3.58318069e-08, -0.256126314))
         end
 end})
 
@@ -5871,39 +5827,31 @@ local Toggle1 = Fruit:AddToggle({
 Toggle1:Callback(function(Value)
     _G.Dungeon = Value
 
+    -- Remove float ao desligar
     local char = game.Players.LocalPlayer.Character
     if char and char:FindFirstChild("HumanoidRootPart") and not Value then
-        DisableFloat(char.HumanoidRootPart)
+        local hrp = char.HumanoidRootPart
+        if hrp:FindFirstChild("StayBV") then
+            hrp.StayBV:Destroy()
+        end
     end
 end)
 
 -------------------------------------------------
--- FLOAT (MANTER NO AR)
+-- FLOAT NA ISLAND
 -------------------------------------------------
-function EnableFloat(hrp)
-    if not hrp:FindFirstChild("FloatBV") then
+local function StayAboveIsland()
+    local char = game.Players.LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if not hrp:FindFirstChild("StayBV") then
         local bv = Instance.new("BodyVelocity")
-        bv.Name = "FloatBV"
-        bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-        bv.Velocity = Vector3.zero
+        bv.Name = "StayBV"
+        bv.MaxForce = Vector3.new(0, 1e9, 0)
+        bv.Velocity = Vector3.new(0, 0, 0)
         bv.Parent = hrp
-    end
-
-    if not hrp:FindFirstChild("FloatBG") then
-        local bg = Instance.new("BodyGyro")
-        bg.Name = "FloatBG"
-        bg.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-        bg.CFrame = hrp.CFrame
-        bg.Parent = hrp
-    end
-end
-
-function DisableFloat(hrp)
-    if hrp:FindFirstChild("FloatBV") then
-        hrp.FloatBV:Destroy()
-    end
-    if hrp:FindFirstChild("FloatBG") then
-        hrp.FloatBG:Destroy()
     end
 end
 
@@ -5961,8 +5909,6 @@ local function FarmEnemies()
     local player = game.Players.LocalPlayer
     local hrp = player.Character.HumanoidRootPart
 
-    EnableFloat(hrp) -- 🔥 mantém no ar
-
     for _, mob in pairs(workspace.Enemies:GetChildren()) do
         if not _G.Dungeon then return end
 
@@ -5977,17 +5923,16 @@ local function FarmEnemies()
 
                     EquipWeapon(getgenv().SelectWeapon)
 
-                    -- micro movimento (Fast Attack)
+                    -- Micro movimento (Fast Attack)
                     hrp.Velocity = Vector3.new(
                         math.random(-2,2),
                         -1,
                         math.random(-2,2)
                     )
 
-                    -- LINHA EXATA PEDIDA
+                    -- Linha exata que você quer
                     topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
 
-                    -- Bring Mob
                     BringMobs(mob.HumanoidRootPart)
 
                 until not _G.Dungeon
@@ -6004,18 +5949,18 @@ end
 task.spawn(function()
     while task.wait(0.3) do
         if _G.Dungeon then
-            local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
-            EnableFloat(hrp) -- 🔥 não deixa cair entre ilhas
-
             FarmEnemies()
 
             local island = GetNextIsland()
             if island then
+                -- Mantém flutuando na island
+                StayAboveIsland()
                 topos(island.CFrame * CFrame.new(0, 60, 0))
             end
         end
     end
 end)
+
 
 
 ------shop --------
