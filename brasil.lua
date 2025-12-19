@@ -130,7 +130,7 @@ Toggle1:Callback(function(Value)
 end)
 
 task.spawn(function()
-    while task.wait(Sec or 0.2) do
+    while task.wait(0.2) do
         if _G.AutoPole then
             pcall(function()
 
@@ -153,11 +153,7 @@ task.spawn(function()
 
                 else
                     -- SE NÃO EXISTIR → VAI PRO LOCAL DO SPAWN
-                    topos(CFrame.new(
-                        -7994.984375,
-                        5761.025390625,
-                        -2088.6479492188
-                    ))
+                    topos(CFrame.new(-7994.984375,5761.025390625,-2088.6479492188))
                 end
 
             end)
