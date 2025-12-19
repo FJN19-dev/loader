@@ -5152,6 +5152,54 @@ end)
 end
 
 
+local Toggle1 = Quest:AddToggle({
+  Name = "Auto Pole V1",
+  Description = "",
+  Default = false 
+})
+Toggle1:Callback(function(Value)
+    _G.AutoBoss = Value
+end)
+
+spawn(function()
+    while task.wait(0.1) do
+        if _G.AutoBoss then
+            pcall(function()
+                local Player = game.Players.LocalPlayer
+                local Char = Player.Character or Player.CharacterAdded:Wait()
+                local HRP = Char:FindFirstChild("HumanoidRootPart")
+                if not HRP then return end
+
+                -- Boss Thunder God
+                for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                    if mob.Name == "Thunder God [Lv. 575] [Boss]"
+                    and mob:FindFirstChild("HumanoidRootPart")
+                    and mob:FindFirstChild("Humanoid")
+                    and mob.Humanoid.Health > 0 then
+
+                        repeat
+                            task.wait(0.05)
+
+                            -- Equipa arma (opcional)
+                            if getgenv().SelectWeapon then
+                                EquipWeapon(getgenv().SelectWeapon)
+                            end
+
+                            -- FICA SEMPRE 20 STUDS ACIMA
+                            topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+
+                        until not _G.AutoBoss
+                        or mob.Humanoid.Health <= 0
+                        or not mob.Parent
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+
+
 _G.AutoFishing = false
 _G.SelectedBait = "Basic Bait"
 _G.SelectedRod = "Fishing Rod"
