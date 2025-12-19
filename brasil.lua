@@ -125,107 +125,42 @@ local Toggle1 = Quest:AddToggle({
     Default = false
 })
 
-Toggle1:Callback(function(v)
-    _G.Thunder = v
+Toggle1:Callback(function(Value)
+    _G.AutoPole = Value
 end)
 
--------------------------------------------------
--- PATHS
--------------------------------------------------
-local Players = game:GetService("Players")
-
-local EnemySpawns = workspace:WaitForChild("_WorldOrigin")
-    :WaitForChild("EnemySpawns")
-
-local ThunderSpawn = EnemySpawns
-    :WaitForChild("Thunder God [Lv. 575] [Boss]")
-
--------------------------------------------------
--- FUNÇÃO PEGAR CFRAME DO SPAWN
--------------------------------------------------
-local function GetSpawnCFrame(spawn)
-    if spawn:IsA("BasePart") then
-        return spawn.CFrame
-    end
-
-    if spawn:IsA("Model") then
-        if spawn.PrimaryPart then
-            return spawn.PrimaryPart.CFrame
-        end
-        local part = spawn:FindFirstChildWhichIsA("BasePart", true)
-        if part then
-            return part.CFrame
-        end
-    end
-
-    if spawn:IsA("Attachment") then
-        return spawn.WorldCFrame
-    end
-
-    return nil
-end
-
--------------------------------------------------
--- FUNÇÃO PEGAR BOSS REAL
--------------------------------------------------
-local function GetThunderBoss()
-    local enemies = workspace:FindFirstChild("Enemies")
-    if not enemies then return nil end
-    return enemies:FindFirstChild("Thunder God")
-end
-
--------------------------------------------------
--- LOOP PRINCIPAL
--------------------------------------------------
 task.spawn(function()
-    while task.wait(0.2) do
-        if not _G.Thunder then continue end
+    while task.wait(Sec or 0.2) do
+        if _G.AutoPole then
+            pcall(function()
 
-        pcall(function()
-            local player = Players.LocalPlayer
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
+                -- procura o Thunder God
+                local boss = GetConnectionEnemies("Thunder God")
 
-            -------------------------------------------------
-            -- 1️⃣ TELEPORTAR PARA O SPAWN REAL
-            -------------------------------------------------
-            local spawnCFrame = GetSpawnCFrame(ThunderSpawn)
-            if spawnCFrame then
-                topos(spawnCFrame * CFrame.new(0, 10, 0))
-            else
-                warn("Spawn do Thunder sem CFrame válido")
-                return
-            end
+                -- SE EXISTIR → FICA ACIMA DO BOSS
+                if boss
+                and boss:FindFirstChild("HumanoidRootPart")
+                and boss:FindFirstChild("Humanoid")
+                and boss.Humanoid.Health > 0 then
 
-            task.wait(1)
+                    -- equipa arma se existir
+                    if getgenv().SelectWeapon then
+                        EquipWeapon(getgenv().SelectWeapon)
+                    end
 
-            -------------------------------------------------
-            -- 2️⃣ ESPERAR BOSS SPAWNAR
-            -------------------------------------------------
-            local boss
-            repeat
-                task.wait(0.3)
-                boss = GetThunderBoss()
-            until boss or not _G.Thunder
+                    -- sempre 20 studs acima
+                    topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
 
-            if not boss then return end
-
-            -------------------------------------------------
-            -- 3️⃣ FARMAR BOSS
-            -------------------------------------------------
-            repeat
-                task.wait(0.05)
-
-                if not _G.Thunder then break end
-                if boss.Humanoid.Health <= 0 then break end
-
-                if getgenv().SelectWeapon then
-                    EquipWeapon(getgenv().SelectWeapon)
+                else
+                    -- SE NÃO EXISTIR → VAI PRO LOCAL DO SPAWN
+                    topos(CFrame.new(
+                        -7994.984375,
+                        5761.025390625,
+                        -2088.6479492188
+                    ))
                 end
 
-                topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-
-            until not boss.Parent
-        end)
+            end)
+        end
     end
 end)
