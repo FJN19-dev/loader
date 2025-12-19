@@ -5870,7 +5870,42 @@ local Toggle1 = Fruit:AddToggle({
 
 Toggle1:Callback(function(Value)
     _G.Dungeon = Value
+
+    local char = game.Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") and not Value then
+        DisableFloat(char.HumanoidRootPart)
+    end
 end)
+
+-------------------------------------------------
+-- FLOAT (MANTER NO AR)
+-------------------------------------------------
+function EnableFloat(hrp)
+    if not hrp:FindFirstChild("FloatBV") then
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FloatBV"
+        bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        bv.Velocity = Vector3.zero
+        bv.Parent = hrp
+    end
+
+    if not hrp:FindFirstChild("FloatBG") then
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "FloatBG"
+        bg.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+        bg.CFrame = hrp.CFrame
+        bg.Parent = hrp
+    end
+end
+
+function DisableFloat(hrp)
+    if hrp:FindFirstChild("FloatBV") then
+        hrp.FloatBV:Destroy()
+    end
+    if hrp:FindFirstChild("FloatBG") then
+        hrp.FloatBG:Destroy()
+    end
+end
 
 -------------------------------------------------
 -- FUNÇÕES DE ILHA
@@ -5926,6 +5961,8 @@ local function FarmEnemies()
     local player = game.Players.LocalPlayer
     local hrp = player.Character.HumanoidRootPart
 
+    EnableFloat(hrp) -- 🔥 mantém no ar
+
     for _, mob in pairs(workspace.Enemies:GetChildren()) do
         if not _G.Dungeon then return end
 
@@ -5940,17 +5977,17 @@ local function FarmEnemies()
 
                     EquipWeapon(getgenv().SelectWeapon)
 
-                    -- MICRO MOVIMENTO (FAST ATTACK FUNCIONA)
+                    -- micro movimento (Fast Attack)
                     hrp.Velocity = Vector3.new(
                         math.random(-2,2),
                         -1,
                         math.random(-2,2)
                     )
 
-                    -- USA EXATAMENTE ESSA LINHA
+                    -- LINHA EXATA PEDIDA
                     topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
 
-                    -- BRING MOB
+                    -- Bring Mob
                     BringMobs(mob.HumanoidRootPart)
 
                 until not _G.Dungeon
@@ -5967,6 +6004,9 @@ end
 task.spawn(function()
     while task.wait(0.3) do
         if _G.Dungeon then
+            local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+            EnableFloat(hrp) -- 🔥 não deixa cair entre ilhas
+
             FarmEnemies()
 
             local island = GetNextIsland()
@@ -5976,7 +6016,6 @@ task.spawn(function()
         end
     end
 end)
-
 
 
 ------shop --------
