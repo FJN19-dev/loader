@@ -24,7 +24,7 @@ Window:AddMinimizeButton({
     local Shop = Window:MakeTab({ "Shop", "shopping-cart" })
     local Misc = Window:MakeTab({ "Misc", "list-plus" })
     local Settings = Window:MakeTab({ "Setting", "settings" })
-    
+ 
 function topos(Tween_Pos)
     pcall(function()
         if game:GetService("Players").LocalPlayer 
@@ -117,54 +117,26 @@ function topos(Tween_Pos)
 end
 
 
--------------------------------------------------
--- TOGGLE
--------------------------------------------------
--- CFrame do spawn do Thunder God
-local ThunderSpawnCF = CFrame.new(
-    -7779.26123, 5606.93701, -2421.94995,
-    -0.996191859, 0, 0.0871884301,
-    0, 1, 0,
-    -0.0871884301, 0, -0.996191859
-)
-
 local Toggle1 = Quest:AddToggle({
     Name = "Auto Pole V1",
+    Description = "",
     Default = false
 })
 
 Toggle1:Callback(function(Value)
-    _G.AutoPole = Value
-
-    if Value then
-        task.spawn(function()
-            while _G.AutoPole do
-                task.wait(0.2)
-                pcall(function()
-
-                    -- Procura o Thunder God
-                    local Boss = GetConnectionEnemies("Thunder God")
-
-                    -- Se o boss existir
-                    if Boss
-                    and Boss:FindFirstChild("HumanoidRootPart")
-                    and Boss:FindFirstChild("Humanoid")
-                    and Boss.Humanoid.Health > 0 then
-
-                        -- Equipa arma (opcional)
-                        if getgenv().SelectWeapon then
-                            EquipWeapon(getgenv().SelectWeapon)
-                        end
-
-                        -- Fica 20 studs acima do boss
-                        topos(Boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-
-                    else
-                        -- Se não existir, vai para o spawn
-                        topos(ThunderSpawnCF)
-                    end
-                end)
-            end
-        end)
+  _G.AutoPole = Value
+end)
+spawn(function()
+  while wait(0.2) do
+    if _G.AutoPole then
+      pcall(function()
+        local v = GetConnectionEnemies("Thunder God")
+	    if v then
+          repeat task.wait()(v, _G.AutoPole) until not _G.AutoPole or not v.Parent or v.Humanoid.Health <= 0
+        else
+          topos(CFrame.new(-7994.984375, 5761.025390625, -2088.6479492188))
+        end
+      end)
     end
+  end
 end)
