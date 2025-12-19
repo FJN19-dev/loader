@@ -5861,62 +5861,95 @@ end)
 
 -- Toggle
 local Toggle1 = Fruit:AddToggle({ 
-    Name = "Auto Farme Raid Next Island", 
+    Name = "Auto Farm Raid Next Island", 
     Description = "",
     Default = false 
 })
 
 Toggle1:Callback(function(Value)
     _G.Dungeon = Value
+
+    -- Solta o player ao desligar
+    if not Value then
+        local hrp = game.Players.LocalPlayer.Character and
+                   game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.Anchored = false
+        end
+    end
 end)
 
--- Retorna a ilha mais próxima pelo ID
+-- Retorna a ilha mais próxima
 local function GetIsland(id)
     local closest, dist = nil, math.huge
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
 
     for _, island in pairs(workspace._WorldOrigin.Locations:GetChildren()) do
         if island.Name == "Island " .. id then
-            local mag = (island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            local mag = (island.Position - hrp.Position).Magnitude
             if mag < dist then
                 dist = mag
                 closest = island
             end
         end
     end
-
     return closest
 end
 
--- Procura a próxima ilha válida (5 → 1)
+-- Próxima ilha
 local function GetNextIsland()
     for i = 5, 1, -1 do
         local island = GetIsland(i)
         if island then
-            local mag = (island.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if mag <= 4500 then
-                return island
+            return island
+        end
+    end
+end
+
+-- Bring Mob
+local function BringMobs(targetHRP)
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if mob:FindFirstChild("HumanoidRootPart")
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0 then
+
+            local dist = (mob.HumanoidRootPart.Position - targetHRP.Position).Magnitude
+            if dist <= 1000 then
+                mob.HumanoidRootPart.CFrame = targetHRP.CFrame
+                mob.HumanoidRootPart.Velocity = Vector3.zero
+                mob.HumanoidRootPart.CanCollide = false
             end
         end
     end
 end
 
--- Farmar inimigos
+-- Farm inimigos
 local function FarmEnemies()
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+
     for _, mob in pairs(workspace.Enemies:GetChildren()) do
         if not _G.Dungeon then return end
 
-        if mob:FindFirstChild("HumanoidRootPart") 
+        if mob:FindFirstChild("HumanoidRootPart")
         and mob:FindFirstChild("Humanoid")
         and mob.Humanoid.Health > 0 then
 
-            local dist = (mob.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
             if dist <= 1000 then
                 repeat
                     task.wait(0.1)
+
                     EquipWeapon(getgenv().SelectWeapon)
-                    topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0))
-                until not _G.Dungeon 
-                or not mob.Parent 
+
+                    -- Trava o player no ar
+                    hrp.Anchored = true
+                    hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
+
+                    -- Bring Mob
+                    BringMobs(mob.HumanoidRootPart)
+
+                until not _G.Dungeon
+                or not mob.Parent
                 or mob.Humanoid.Health <= 0
             end
         end
@@ -5931,7 +5964,9 @@ task.spawn(function()
 
             local island = GetNextIsland()
             if island then
-                topos(island.CFrame * CFrame.new(0, 60, 0))
+                local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+                hrp.Anchored = true
+                hrp.CFrame = island.CFrame * CFrame.new(0, 60, 0)
             end
         end
     end
