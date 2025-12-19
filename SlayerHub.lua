@@ -5943,7 +5943,7 @@ local function FarmEnemies()
 
                     -- Trava o player no ar
                     hrp.Anchored = true
-                    hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
+                    hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0)
 
                     -- Bring Mob
                     BringMobs(mob.HumanoidRootPart)
