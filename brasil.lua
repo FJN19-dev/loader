@@ -118,13 +118,6 @@ end
 
 
 -------------------------------------------------
--- CONFIG
--------------------------------------------------
-local BossName = "Thunder God [Lv. 575] [Boss]"
-local EnemySpawns = workspace._WorldOrigin:WaitForChild("EnemySpawns")
-local BossSpawn = EnemySpawns:WaitForChild(BossName)
-
--------------------------------------------------
 -- TOGGLE
 -------------------------------------------------
 local Toggle1 = Quest:AddToggle({
@@ -134,54 +127,76 @@ local Toggle1 = Quest:AddToggle({
 })
 
 Toggle1:Callback(function(Value)
-    _G.AutoThunder = Value
+    _G.Thunder = Value
 end)
 
 -------------------------------------------------
--- FUNÇÃO: PROCURAR BOSS
+-- CONFIG
 -------------------------------------------------
-local function GetBoss()
+local ThunderIslandCFrame = CFrame.new(
+    -7994.984375,
+    5761.025390625,
+    -2088.6479492188
+)
+
+-------------------------------------------------
+-- FUNÇÃO ESPERAR BOSS SPAWNAR
+-------------------------------------------------
+local function GetThunderBoss()
     local enemies = workspace:FindFirstChild("Enemies")
     if not enemies then return nil end
-
-    for _, v in pairs(enemies:GetChildren()) do
-        if v.Name == BossName
-        and v:FindFirstChild("HumanoidRootPart")
-        and v:FindFirstChild("Humanoid")
-        and v.Humanoid.Health > 0 then
-            return v
-        end
-    end
+    return enemies:FindFirstChild("Thunder God")
 end
 
 -------------------------------------------------
 -- LOOP PRINCIPAL
 -------------------------------------------------
 task.spawn(function()
-    while task.wait(0.1) do
-        if _G.AutoThunder then
+    while task.wait(0.2) do
+        if _G.Thunder then
             pcall(function()
-
                 local player = game.Players.LocalPlayer
                 local char = player.Character or player.CharacterAdded:Wait()
-                local hrp = char:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
+                local hrp = char:WaitForChild("HumanoidRootPart")
 
-                local boss = GetBoss()
+                -------------------------------------------------
+                -- 1️⃣ IR PARA A ILHA (FORÇA RENDER)
+                -------------------------------------------------
+                topos(ThunderIslandCFrame)
+                task.wait(1)
 
-                -- 1️⃣ SE O BOSS EXISTE → MATA
-                if boss then
-                    if getgenv().SelectWeapon then
-                        EquipWeapon(getgenv().SelectWeapon)
-                    end
+                -------------------------------------------------
+                -- 2️⃣ ESPERAR O THUNDER GOD SPAWNAR
+                -------------------------------------------------
+                local boss
+                repeat
+                    task.wait(0.5)
+                    boss = GetThunderBoss()
+                until boss or not _G.Thunder
 
-                    topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-                    return
+                if not boss then return end
+
+                -------------------------------------------------
+                -- 3️⃣ ATACAR O BOSS
+                -------------------------------------------------
+                if boss:FindFirstChild("Humanoid")
+                and boss:FindFirstChild("HumanoidRootPart") then
+
+                    repeat
+                        task.wait(0.05)
+
+                        if not _G.Thunder then break end
+                        if boss.Humanoid.Health <= 0 then break end
+
+                        if getgenv().SelectWeapon then
+                            EquipWeapon(getgenv().SelectWeapon)
+                        end
+
+                        -- 🔥 SEMPRE 20 STUDS ACIMA DO BOSS
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+
+                    until not boss.Parent
                 end
-
-                -- 2️⃣ SE NÃO EXISTE → VAI PRO SPAWN
-                topos(BossSpawn.CFrame * CFrame.new(0, 20, 0))
-
             end)
         end
     end
