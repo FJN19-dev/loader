@@ -5082,7 +5082,7 @@ spawn(function()
 end)
 end 
 
-
+if World3 then
 local Toggle1 = Quest:AddToggle({
     Name = "Auto Tushita",
     Description = "",
@@ -5121,7 +5121,7 @@ task.spawn(function()
         end)
     end
 end)
-
+end
 
 if World3 then
 local Toggle1 = Quest:AddToggle({
@@ -5151,52 +5151,272 @@ task.spawn(function()
 end)
 end
 
-
+------Sea 1----
+if World1 then
 local Toggle1 = Quest:AddToggle({
-  Name = "Auto Pole V1",
-  Description = "",
-  Default = false 
+    Name = "Auto Saber",
+    Description = "",
+    Default = false 
 })
+
 Toggle1:Callback(function(Value)
-    _G.AutoBoss = Value
+    getgenv().AutoSaber = Value
 end)
-
 spawn(function()
-    while task.wait(0.1) do
-        if _G.AutoBoss then
+    while task.wait(0.5) do
+        if getgenv().AutoSaber and game.Players.LocalPlayer.Data.Level.Value >= 200 then
             pcall(function()
-                local Player = game.Players.LocalPlayer
-                local Char = Player.Character or Player.CharacterAdded:Wait()
-                local HRP = Char:FindFirstChild("HumanoidRootPart")
-                if not HRP then return end
-
-                -- Boss Thunder God
-                for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                    if mob.Name == "Thunder God [Lv. 575] [Boss]"
-                    and mob:FindFirstChild("HumanoidRootPart")
-                    and mob:FindFirstChild("Humanoid")
-                    and mob.Humanoid.Health > 0 then
-
-                        repeat
-                            task.wait(0.05)
-
-                            -- Equipa arma (opcional)
-                            if getgenv().SelectWeapon then
-                                EquipWeapon(getgenv().SelectWeapon)
+                local player = game.Players.LocalPlayer
+                local char = player.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+                local jungle = game:GetService("Workspace").Map.Jungle
+                local desert = game:GetService("Workspace").Map.Desert
+                local relicPos = CFrame.new(-1404.91, 29.97, 3.80)                
+                if jungle.Final.Part.Transparency == 0 then
+                    if jungle.QuestPlates.Door.Transparency == 0 then
+                        local saberPos = CFrame.new(-1612.55, 36.97, 148.71)
+                        if (saberPos.Position - hrp.Position).Magnitude <= 100 then
+                            for i = 1, 5 do
+                                local plate = jungle.QuestPlates:FindFirstChild("Plate" .. i)
+                                if plate and plate:FindFirstChild("Button") then
+                                    hrp.CFrame = plate.Button.CFrame
+                                    task.wait(0.5)
+                                end
                             end
-
-                            -- FICA SEMPRE 20 STUDS ACIMA
-                            topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-
-                        until not _G.AutoBoss
-                        or mob.Humanoid.Health <= 0
-                        or not mob.Parent
+                        else
+                            topos(saberPos)
+                        end
+                    else
+                        if desert.Burn.Part.Transparency == 0 then
+                            if player.Backpack:FindFirstChild("Torch") or char:FindFirstChild("Torch") then
+                                EquipWeapon("Torch")
+                                topos(CFrame.new(1114.61, 5.04, 4350.22))
+                            else
+                                topos(CFrame.new(-1610.00, 11.50, 164.00))
+                            end
+                        else
+                            local commF = game:GetService("ReplicatedStorage").Remotes.CommF_
+                            if commF:InvokeServer("ProQuestProgress", "SickMan") ~= 0 then
+                                commF:InvokeServer("ProQuestProgress", "GetCup")
+                                task.wait(0.1)
+                                EquipWeapon("Cup")
+                                task.wait(0.1)
+                                commF:InvokeServer("ProQuestProgress", "FillCup", char:FindFirstChild("Cup"))
+                                task.wait(0.1)
+                                commF:InvokeServer("ProQuestProgress", "SickMan")
+                            else
+                                if commF:InvokeServer("ProQuestProgress", "RichSon") == nil then
+                                    commF:InvokeServer("ProQuestProgress", "RichSon")
+                                elseif commF:InvokeServer("ProQuestProgress", "RichSon") == 0 then
+                                    local mobLeader = game:GetService("Workspace").Enemies:FindFirstChild("Mob Leader")
+                                    if not mobLeader then
+                                        mobLeader = game:GetService("ReplicatedStorage"):FindFirstChild("Mob Leader")
+                                    end                                    
+                                    if mobLeader then
+                                        topos(mobLeader.HumanoidRootPart.CFrame)
+                                        repeat
+                                            task.wait()
+                                            AutoHaki()
+                                            EquipWeapon(getgenv().SelectWeapon)
+                                            mobLeader.HumanoidRootPart.CanCollide = false
+                                            mobLeader.Humanoid.WalkSpeed = 0
+                                            topos(mobLeader.HumanoidRootPart.CFrame)
+                                            game:GetService("VirtualUser"):CaptureController()
+                                            game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                                            sethiddenproperty(player, "SimulationRadius", math.huge)
+                                        until mobLeader.Humanoid.Health <= 0 or not getgenv().AutoSaber
+                                    end
+                                elseif commF:InvokeServer("ProQuestProgress", "RichSon") == 1 then
+                                    commF:InvokeServer("ProQuestProgress", "RichSon")
+                                    task.wait(0.1)
+                                    EquipWeapon("Relic")
+                                    task.wait(0.1)
+                                    topos(relicPos)
+                                end
+                            end
+                        end
+                    end
+                else
+                    local saberExpert = game:GetService("Workspace").Enemies:FindFirstChild("Saber Expert")
+                    if not saberExpert then
+                        saberExpert = game:GetService("ReplicatedStorage"):FindFirstChild("Saber Expert")
+                    end                    
+                    if saberExpert then
+                        repeat
+                            task.wait()
+                            EquipWeapon(getgenv().SelectWeapon)
+                            topos(saberExpert.HumanoidRootPart.CFrame)
+                            saberExpert.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                            saberExpert.HumanoidRootPart.Transparency = 1
+                            saberExpert.Humanoid.JumpPower = 0
+                            saberExpert.Humanoid.WalkSpeed = 0
+                            saberExpert.HumanoidRootPart.CanCollide = false
+                            game:GetService("VirtualUser"):CaptureController()
+                            game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                        until saberExpert.Humanoid.Health <= 0 or not getgenv().AutoSaber                        
+                        if saberExpert.Humanoid.Health <= 0 then
+                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ProQuestProgress", "PlaceRelic")
+                        end
                     end
                 end
             end)
         end
     end
 end)
+end
+
+if World1 then
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Warden",
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.AutoWarden = Value
+end)
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.AutoWarden then
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local char = player.Character or player.CharacterAdded:Wait()
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+
+                local enemies = workspace:FindFirstChild("Enemies")
+                if not enemies then return end
+
+                local boss = enemies:FindFirstChild("Chief Warden")
+                if not boss then return end
+
+                if boss:FindFirstChild("HumanoidRootPart")
+                and boss:FindFirstChild("Humanoid")
+                and boss.Humanoid.Health > 0 then
+
+                    repeat
+                        task.wait(0.05)
+
+                        if getgenv().SelectWeapon then
+                            EquipWeapon(getgenv().SelectWeapon)
+                        end
+
+                        -- SEMPRE 20 STUDS ACIMA DO BOSS
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+
+                    until not _G.AutoWarden
+                    or boss.Humanoid.Health <= 0
+                    or not boss.Parent
+                end
+            end)
+        end
+    end
+end)
+end
+
+
+if World1 then
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Capa Rosa (Flamingo)",
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.CapaRosa = Value
+end)
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.CapaRosa then
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local char = player.Character or player.CharacterAdded:Wait()
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+
+                local enemies = workspace:FindFirstChild("Enemies")
+                if not enemies then return end
+
+                local boss = enemies:FindFirstChild("Swan")
+                if not boss then return end
+
+                if boss:FindFirstChild("HumanoidRootPart")
+                and boss:FindFirstChild("Humanoid")
+                and boss.Humanoid.Health > 0 then
+
+                    repeat
+                        task.wait(0.05)
+
+                        if getgenv().SelectWeapon then
+                            EquipWeapon(getgenv().SelectWeapon)
+                        end
+
+                        -- SEMPRE 20 STUDS ACIMA DO BOSS
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+
+                    until not _G.CapaRosa
+                    or boss.Humanoid.Health <= 0
+                    or not boss.Parent
+                end
+            end)
+        end
+    end
+end)
+end
+
+if World1 then
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Pole V1",
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.Thunder = Value
+end)
+
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.Thunder then
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local char = player.Character or player.CharacterAdded:Wait()
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+
+                local enemies = workspace:FindFirstChild("Enemies")
+                if not enemies then return end
+
+                local boss = enemies:FindFirstChild("Thunder God")
+                if not boss then return end
+
+                if boss:FindFirstChild("HumanoidRootPart")
+                and boss:FindFirstChild("Humanoid")
+                and boss.Humanoid.Health > 0 then
+
+                    repeat
+                        task.wait(0.05)
+
+                        if getgenv().SelectWeapon then
+                            EquipWeapon(getgenv().SelectWeapon)
+                        end
+
+                        -- SEMPRE 20 STUDS ACIMA DO BOSS
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+
+                    until not _G.Thunder
+                    or boss.Humanoid.Health <= 0
+                    or not boss.Parent
+                end
+            end)
+        end
+    end
+end)
+end
 
 
 
