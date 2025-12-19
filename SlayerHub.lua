@@ -5266,59 +5266,9 @@ spawn(function()
 end)
 end
 
-if World1 then
+
 local Toggle1 = Quest:AddToggle({
-    Name = "Auto Warden",
-    Description = "",
-    Default = false 
-})
-
-Toggle1:Callback(function(Value)
-    _G.AutoWarden = Value
-end)
-task.spawn(function()
-    while task.wait(0.1) do
-        if _G.AutoWarden then
-            pcall(function()
-                local player = game.Players.LocalPlayer
-                local char = player.Character or player.CharacterAdded:Wait()
-                local hrp = char:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
-
-                local enemies = workspace:FindFirstChild("Enemies")
-                if not enemies then return end
-
-                local boss = enemies:FindFirstChild("Chief Warden")
-                if not boss then return end
-
-                if boss:FindFirstChild("HumanoidRootPart")
-                and boss:FindFirstChild("Humanoid")
-                and boss.Humanoid.Health > 0 then
-
-                    repeat
-                        task.wait(0.05)
-
-                        if getgenv().SelectWeapon then
-                            EquipWeapon(getgenv().SelectWeapon)
-                        end
-
-                        -- SEMPRE 20 STUDS ACIMA DO BOSS
-                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-
-                    until not _G.AutoWarden
-                    or boss.Humanoid.Health <= 0
-                    or not boss.Parent
-                end
-            end)
-        end
-    end
-end)
-end
-
-
-if World1 then
-local Toggle1 = Quest:AddToggle({
-    Name = "Auto Capa Rosa (Flamingo)",
+    Name = "Auto Capa Rosa ",
     Description = "",
     Default = false 
 })
@@ -5326,44 +5276,56 @@ local Toggle1 = Quest:AddToggle({
 Toggle1:Callback(function(Value)
     _G.CapaRosa = Value
 end)
+
+-- CFrame fixo antes de atacar o boss
+local CFrameBoss = CFrame.new(5325.09619, 7.03906584, 719.570679, -0.309060812, 0, 0.951042235, 0, 1, 0, -0.951042235, 0, -0.309060812)
+
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
 task.spawn(function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
     while task.wait(0.1) do
         if _G.CapaRosa then
+            -- Teleporta sempre para o CFrame inicial, mesmo sem boss
             pcall(function()
-                local player = game.Players.LocalPlayer
-                local char = player.Character or player.CharacterAdded:Wait()
-                local hrp = char:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
-
-                local enemies = workspace:FindFirstChild("Enemies")
-                if not enemies then return end
-
-                local boss = enemies:FindFirstChild("Swan")
-                if not boss then return end
-
-                if boss:FindFirstChild("HumanoidRootPart")
-                and boss:FindFirstChild("Humanoid")
-                and boss.Humanoid.Health > 0 then
-
-                    repeat
-                        task.wait(0.05)
-
-                        if getgenv().SelectWeapon then
-                            EquipWeapon(getgenv().SelectWeapon)
-                        end
-
-                        -- SEMPRE 20 STUDS ACIMA DO BOSS
-                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-
-                    until not _G.CapaRosa
-                    or boss.Humanoid.Health <= 0
-                    or not boss.Parent
-                end
+                topos(CFrameBoss)
             end)
+
+            -- Espera o boss spawnar
+            local boss = nil
+            repeat
+                task.wait(0.2)
+                local enemies = workspace:FindFirstChild("Enemies")
+                if enemies then
+                    boss = enemies:FindFirstChild("Swan")
+                end
+            until (boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0) or not _G.CapaRosa
+
+            -- Se o boss existe, entra no loop de ataque
+            if boss then
+                repeat
+                    task.wait(0.05)
+
+                    if getgenv().SelectWeapon then
+                        pcall(function() EquipWeapon(getgenv().SelectWeapon) end)
+                    end
+
+                    pcall(function()
+                        -- Sempre 20 studs acima do boss
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    end)
+
+                until not _G.CapaRosa
+                or boss.Humanoid.Health <= 0
+                or not boss.Parent
+            end
         end
     end
 end)
-end
 
 
 local Toggle1 = Quest:AddToggle({
