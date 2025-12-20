@@ -5266,6 +5266,307 @@ spawn(function()
 end)
 end
 
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Trident",
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.Trident = Value
+end)
+
+-- CFrame fixo antes de atacar o boss
+local CFrameBoss = CFrame.new(61260.15234375, 30.950881958008, 1193.4329833984)
+
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
+task.spawn(function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    while task.wait(0.1) do
+        if _G.Trident then
+            -- Teleporta sempre para o CFrame inicial, mesmo sem boss
+            pcall(function()
+                topos(CFrameBoss)
+            end)
+
+            -- Espera o boss spawnar
+            local boss = nil
+            repeat
+                task.wait(0.2)
+                local enemies = workspace:FindFirstChild("Enemies")
+                if enemies then
+                    boss = enemies:FindFirstChild("Fishman Lord")
+                end
+            until (boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0) or not _G.Trident
+
+            -- Se o boss existe, entra no loop de ataque
+            if boss then
+                repeat
+                    task.wait(0.05)
+
+                    if getgenv().SelectWeapon then
+                        pcall(function() EquipWeapon(getgenv().SelectWeapon) end)
+                    end
+
+                    pcall(function()
+                        -- Sempre 20 studs acima do boss
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    end)
+
+                until not _G.Trident
+                or boss.Humanoid.Health <= 0
+                or not boss.Parent
+            end
+        end
+    end
+end)
+
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Óculos De Sol",
+    Description = "Óculos Do Frank",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.oculosDoFrank = Value
+end)
+
+-- CFrame fixo antes de atacar o boss
+local CFrameBoss = CFrame.new(6094.0249023438, 73.770050048828, 3825.7348632813)
+
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
+task.spawn(function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    while task.wait(0.1) do
+        if _G.oculosDoFrank then
+            -- Teleporta sempre para o CFrame inicial, mesmo sem boss
+            pcall(function()
+                topos(CFrameBoss)
+            end)
+
+            -- Espera o boss spawnar
+            local boss = nil
+            repeat
+                task.wait(0.2)
+                local enemies = workspace:FindFirstChild("Enemies")
+                if enemies then
+                    boss = enemies:FindFirstChild("Cyborg")
+                end
+            until (boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0) or not _G.oculosDoFrank
+
+            -- Se o boss existe, entra no loop de ataque
+            if boss then
+                repeat
+                    task.wait(0.05)
+
+                    if getgenv().SelectWeapon then
+                        pcall(function() EquipWeapon(getgenv().SelectWeapon) end)
+                    end
+
+                    pcall(function()
+                        -- Sempre 20 studs acima do boss
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    end)
+
+                until not _G.oculosDoFrank
+                or boss.Humanoid.Health <= 0
+                or not boss.Parent
+            end
+        end
+    end
+end)
+
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Bazuka",
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.Bazuka = Value
+end)
+
+-- CFrame fixo antes de atacar o boss
+local CFrameBoss = CFrame.new(-7866.1333007813, 5576.4311523438, -546.74816894531)
+
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
+task.spawn(function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    while task.wait(0.1) do
+        if _G.Bazuka then
+            -- Teleporta sempre para o CFrame inicial, mesmo sem boss
+            pcall(function()
+                topos(CFrameBoss)
+            end)
+
+            -- Espera o boss spawnar
+            local boss = nil
+            repeat
+                task.wait(0.2)
+                local enemies = workspace:FindFirstChild("Enemies")
+                if enemies then
+                    boss = enemies:FindFirstChild("Wysper")
+                end
+            until (boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0) or not _G.Bazuka
+
+            -- Se o boss existe, entra no loop de ataque
+            if boss then
+                repeat
+                    task.wait(0.05)
+
+                    if getgenv().SelectWeapon then
+                        pcall(function() EquipWeapon(getgenv().SelectWeapon) end)
+                    end
+
+                    pcall(function()
+                        -- Sempre 20 studs acima do boss
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    end)
+
+                until not _G.Bazuka
+                or boss.Humanoid.Health <= 0
+                or not boss.Parent
+            end
+        end
+    end
+end)
+
+
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Capa da Marinha ",
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.CapaDaMarinha = Value
+end)
+
+-- CFrame fixo antes de atacar o boss
+local CFrameBoss = CFrame.new(-5006.5454101563, 88.032081604004, 4353.162109375)
+
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
+task.spawn(function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    while task.wait(0.1) do
+        if _G.CapaDaMarinha then
+            -- Teleporta sempre para o CFrame inicial, mesmo sem boss
+            pcall(function()
+                topos(CFrameBoss)
+            end)
+
+            -- Espera o boss spawnar
+            local boss = nil
+            repeat
+                task.wait(0.2)
+                local enemies = workspace:FindFirstChild("Enemies")
+                if enemies then
+                    boss = enemies:FindFirstChild("Vice Admiral")
+                end
+            until (boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0) or not _G.CapaDaMarinha
+
+            -- Se o boss existe, entra no loop de ataque
+            if boss then
+                repeat
+                    task.wait(0.05)
+
+                    if getgenv().SelectWeapon then
+                        pcall(function() EquipWeapon(getgenv().SelectWeapon) end)
+                    end
+
+                    pcall(function()
+                        -- Sempre 20 studs acima do boss
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    end)
+
+                until not _G.CapaDaMarinha
+                or boss.Humanoid.Health <= 0
+                or not boss.Parent
+            end
+        end
+    end
+end)
+
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Warden ",
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.Warden = Value
+end)
+
+-- CFrame fixo antes de atacar o boss
+local CFrameBoss = CFrame.new(5206.92578, 0.997753382, 814.976746, 0.342041343, -0.00062915677, 0.939684749, 0.00191645394, 0.999998152, -2.80422337e-05, -0.939682961, 0.00181045406, 0.342041939)
+
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
+task.spawn(function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    while task.wait(0.1) do
+        if _G.Warden then
+            -- Teleporta sempre para o CFrame inicial, mesmo sem boss
+            pcall(function()
+                topos(CFrameBoss)
+            end)
+
+            -- Espera o boss spawnar
+            local boss = nil
+            repeat
+                task.wait(0.2)
+                local enemies = workspace:FindFirstChild("Enemies")
+                if enemies then
+                    boss = enemies:FindFirstChild("Chief Warden")
+                end
+            until (boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0) or not _G.Warden
+
+            -- Se o boss existe, entra no loop de ataque
+            if boss then
+                repeat
+                    task.wait(0.05)
+
+                    if getgenv().SelectWeapon then
+                        pcall(function() EquipWeapon(getgenv().SelectWeapon) end)
+                    end
+
+                    pcall(function()
+                        -- Sempre 20 studs acima do boss
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    end)
+
+                until not _G.Warden
+                or boss.Humanoid.Health <= 0
+                or not boss.Parent
+            end
+        end
+    end
+end)
+
 
 local Toggle1 = Quest:AddToggle({
     Name = "Auto Capa Rosa ",
