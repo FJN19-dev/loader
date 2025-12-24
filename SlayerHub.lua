@@ -7553,7 +7553,152 @@ task.spawn(function()
     end
 end)
 
+local Section = Fruit:AddSection({"Dungeon"})
 
+-------------------------------------------------
+-- TOGGLE
+-------------------------------------------------
+local Toggle1 = Fruit:AddToggle({ 
+    Name = "Auto Farm Dungeon (1 → 15)", 
+    Description = "",
+    Default = false 
+})
+
+Toggle1:Callback(function(Value)
+    _G.Dungeon = Value
+
+    -- Remove float ao desligar
+    local char = game.Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") and not Value then
+        local hrp = char.HumanoidRootPart
+        if hrp:FindFirstChild("StayBV") then
+            hrp.StayBV:Destroy()
+        end
+    end
+end)
+
+-------------------------------------------------
+-- FLOAT NO DUNGEON
+-------------------------------------------------
+local function StayAboveDungeon()
+    local char = game.Players.LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if not hrp:FindFirstChild("StayBV") then
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "StayBV"
+        bv.MaxForce = Vector3.new(0, 1e9, 0)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.Parent = hrp
+    end
+end
+
+-------------------------------------------------
+-- FUNÇÕES DE DUNGEON (1 A 15)
+-------------------------------------------------
+local function GetDungeonFloor(id)
+    local dungeonFolder = workspace:FindFirstChild("Map")
+        and workspace.Map:FindFirstChild("Dungeon")
+
+    if not dungeonFolder then return nil end
+
+    local floor = dungeonFolder:FindFirstChild(tostring(id))
+    if floor and floor:IsA("BasePart") then
+        return floor
+    end
+
+    return nil
+end
+
+local function GetNextDungeonFloor()
+    -- Sempre pega o andar mais alto liberado
+    for i = 15, 1, -1 do
+        local floor = GetDungeonFloor(i)
+        if floor then
+            return floor
+        end
+    end
+end
+
+-------------------------------------------------
+-- BRING MOB
+-------------------------------------------------
+local function BringMobs(targetHRP)
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("HumanoidRootPart")
+        and v:FindFirstChild("Humanoid")
+        and v.Humanoid.Health > 0 then
+
+            local dist = (v.HumanoidRootPart.Position - targetHRP.Position).Magnitude
+            if dist <= 1000 then
+                v.HumanoidRootPart.CFrame = targetHRP.CFrame
+                v.HumanoidRootPart.Velocity = Vector3.zero
+                v.Humanoid:ChangeState(11)
+            end
+        end
+    end
+end
+
+-------------------------------------------------
+-- FARM INIMIGOS
+-------------------------------------------------
+local function FarmEnemies()
+    local player = game.Players.LocalPlayer
+    if not player.Character then return end
+
+    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if not _G.Dungeon then return end
+
+        if mob:FindFirstChild("HumanoidRootPart")
+        and mob:FindFirstChild("Humanoid")
+        and mob.Humanoid.Health > 0 then
+
+            local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
+            if dist <= 1000 then
+                repeat
+                    task.wait(0.05)
+
+                    EquipWeapon(getgenv().SelectWeapon)
+
+                    -- Micro movimento (Fast Attack)
+                    hrp.Velocity = Vector3.new(
+                        math.random(-2,2),
+                        -1,
+                        math.random(-2,2)
+                    )
+
+                    topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    BringMobs(mob.HumanoidRootPart)
+
+                until not _G.Dungeon
+                or not mob.Parent
+                or mob.Humanoid.Health <= 0
+            end
+        end
+    end
+end
+
+-------------------------------------------------
+-- LOOP PRINCIPAL (DUNGEON)
+-------------------------------------------------
+task.spawn(function()
+    while task.wait(0.3) do
+        if _G.Dungeon then
+            FarmEnemies()
+
+            local floor = GetNextDungeonFloor()
+            if floor then
+                StayAboveDungeon()
+                topos(floor.CFrame * CFrame.new(0, 60, 0))
+            end
+        end
+    end
+end)
 
 ------shop --------
 local codes = {
