@@ -7559,7 +7559,7 @@ local Section = Fruit:AddSection({"Dungeon"})
 -- TOGGLE
 -------------------------------------------------
 local Toggle1 = Fruit:AddToggle({ 
-    Name = "Auto Farm Dungeon (1 → 15)", 
+    Name = "Auto Farm Dungeon (Exit TP)", 
     Description = "",
     Default = false 
 })
@@ -7578,9 +7578,9 @@ Toggle1:Callback(function(Value)
 end)
 
 -------------------------------------------------
--- FLOAT NO DUNGEON
+-- FLOAT
 -------------------------------------------------
-local function StayAboveDungeon()
+local function StayAbove()
     local char = game.Players.LocalPlayer.Character
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
@@ -7590,36 +7590,56 @@ local function StayAboveDungeon()
         local bv = Instance.new("BodyVelocity")
         bv.Name = "StayBV"
         bv.MaxForce = Vector3.new(0, 1e9, 0)
-        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.Velocity = Vector3.zero
         bv.Parent = hrp
     end
 end
 
 -------------------------------------------------
--- FUNÇÕES DE DUNGEON (1 A 15)
+-- DUNGEON INFO
 -------------------------------------------------
-local function GetDungeonFloor(id)
-    local dungeonFolder = workspace:FindFirstChild("Map")
+local function GetDungeonFolder()
+    return workspace:FindFirstChild("Map")
         and workspace.Map:FindFirstChild("Dungeon")
-
-    if not dungeonFolder then return nil end
-
-    local floor = dungeonFolder:FindFirstChild(tostring(id))
-    if floor and floor:IsA("BasePart") then
-        return floor
-    end
-
-    return nil
 end
 
-local function GetNextDungeonFloor()
-    -- Sempre pega o andar mais alto liberado
-    for i = 15, 1, -1 do
-        local floor = GetDungeonFloor(i)
-        if floor then
-            return floor
+local function GetExitTeleporter(floor)
+    local dungeon = GetDungeonFolder()
+    if not dungeon then return nil end
+
+    local f = dungeon:FindFirstChild(tostring(floor))
+    if not f then return nil end
+
+    return f:FindFirstChild("ExitTeleporter")
+        and f.ExitTeleporter:FindFirstChild("Root")
+end
+
+-------------------------------------------------
+-- ANDAR ATUAL (detecta pelo TP mais próximo)
+-------------------------------------------------
+local function GetCurrentFloor()
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+    local dungeon = GetDungeonFolder()
+    if not dungeon then return 1 end
+
+    local closest, dist = 1, math.huge
+
+    for i = 1, 15 do
+        local floor = dungeon:FindFirstChild(tostring(i))
+        if floor and floor:IsA("Model") then
+            for _, v in pairs(floor:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    local mag = (v.Position - hrp.Position).Magnitude
+                    if mag < dist then
+                        dist = mag
+                        closest = i
+                    end
+                end
+            end
         end
     end
+
+    return closest
 end
 
 -------------------------------------------------
@@ -7631,8 +7651,7 @@ local function BringMobs(targetHRP)
         and v:FindFirstChild("Humanoid")
         and v.Humanoid.Health > 0 then
 
-            local dist = (v.HumanoidRootPart.Position - targetHRP.Position).Magnitude
-            if dist <= 1000 then
+            if (v.HumanoidRootPart.Position - targetHRP.Position).Magnitude <= 1000 then
                 v.HumanoidRootPart.CFrame = targetHRP.CFrame
                 v.HumanoidRootPart.Velocity = Vector3.zero
                 v.Humanoid:ChangeState(11)
@@ -7642,13 +7661,12 @@ local function BringMobs(targetHRP)
 end
 
 -------------------------------------------------
--- FARM INIMIGOS
+-- FARM
 -------------------------------------------------
 local function FarmEnemies()
-    local player = game.Players.LocalPlayer
-    if not player.Character then return end
-
-    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+    local plr = game.Players.LocalPlayer
+    if not plr.Character then return end
+    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
     for _, mob in pairs(workspace.Enemies:GetChildren()) do
@@ -7658,14 +7676,12 @@ local function FarmEnemies()
         and mob:FindFirstChild("Humanoid")
         and mob.Humanoid.Health > 0 then
 
-            local dist = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
-            if dist <= 1000 then
+            if (mob.HumanoidRootPart.Position - hrp.Position).Magnitude <= 1000 then
                 repeat
                     task.wait(0.05)
 
                     EquipWeapon(getgenv().SelectWeapon)
 
-                    -- Micro movimento (Fast Attack)
                     hrp.Velocity = Vector3.new(
                         math.random(-2,2),
                         -1,
@@ -7684,21 +7700,26 @@ local function FarmEnemies()
 end
 
 -------------------------------------------------
--- LOOP PRINCIPAL (DUNGEON)
+-- LOOP PRINCIPAL
 -------------------------------------------------
 task.spawn(function()
     while task.wait(0.3) do
-        if _G.Dungeon then
-            FarmEnemies()
+        if not _G.Dungeon then continue end
 
-            local floor = GetNextDungeonFloor()
-            if floor then
-                StayAboveDungeon()
-                topos(floor.CFrame * CFrame.new(0, 60, 0))
-            end
+        FarmEnemies()
+        StayAbove()
+
+        local currentFloor = GetCurrentFloor()
+        local exitTP = GetExitTeleporter(currentFloor)
+
+        -- Se o ExitTeleporter existir, sobe
+        if exitTP then
+            topos(exitTP.CFrame * CFrame.new(0, 5, 0))
+            task.wait(1)
         end
     end
 end)
+
 
 ------shop --------
 local codes = {
