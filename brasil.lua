@@ -5020,6 +5020,49 @@ if World2 then
     end)
 end
 
+if World2 then
+local Q = Quest:AddToggle({
+    Title = "Auto Key Rengoku (Backpack → Baú)",
+    Description = "",
+    Default = false
+})
+
+Q:OnChanged(function(Value)
+    _G.KeysRen = Value
+end)
+
+-- POSIÇÃO DO BAÚ
+local BauCFrame = CFrame.new(
+    6571.1201171875,
+    299.23028564453,
+    -6967.841796875
+)
+
+spawn(function()
+    while task.wait(0.2) do
+        pcall(function()
+            if not _G.KeysRen then return end
+
+            -- SE A KEY APARECER NO BACKPACK OU CHARACTER
+            local key =
+                plr.Backpack:FindFirstChild(RenMon[3]) or
+                plr.Character:FindFirstChild(RenMon[3])
+
+            if key then
+                EquipWeapon(RenMon[3])
+                task.wait(0.1)
+
+                -- IR DIRETO PRO BAÚ
+                topos(BauCFrame)
+
+                -- DESLIGAR
+                _G.KeysRen = false
+                Q:Set(false)
+            end
+        end)
+    end
+end)
+end
 
 if World2 then
 local Toggle1 = Quest:AddToggle({
