@@ -172,6 +172,7 @@ local placeId = game.PlaceId
 local First_Sea = false
 local Second_Sea = false
 local Third_Sea = false
+local Dungeon = false
 
 if placeId == 2753915549 then
     First_Sea = true
@@ -179,6 +180,8 @@ elseif placeId == 79091703265657 then
     Second_Sea = true
 elseif placeId == 100117331123089 then
     Third_Sea = true
+elseif placeId == 73902483975735 then
+    Dungeon = true
 end
 
 if not game:IsLoaded() then
@@ -199,7 +202,7 @@ local PlayerGui = Player:WaitForChild("PlayerGui", 10)
 local MainGui = PlayerGui and PlayerGui:FindFirstChild("Main")
 
 -- ===== WORLD =====
-local World1, World2, World3 = false, false, false
+local World1, World2, World3, Dungeon = false, false, false, false
 
 if placeId == 2753915549 then
     World1 = true
@@ -207,6 +210,8 @@ elseif placeId == 79091703265657 then
     World2 = true
 elseif placeId == 100117331123089 then
     World3 = true
+elseif placeId == 73902483975735 then
+    Dungeon = true
 end
 
 -- ===== CHARACTER =====
@@ -889,19 +894,33 @@ function CheckQuest()
 end
 
 local id = game.PlaceId
-if id == 2753915549 then World1 = true; elseif id == 79091703265657 then World2 = true; elseif id == 100117331123089 then World3 = true; else game:Shutdown() end;
+if id == 2753915549 then
+    World1 = true
+elseif id == 79091703265657 then
+    World2 = true
+elseif id == 100117331123089 then
+    World3 = true
+elseif id == 73902483975735 then
+    Dungeon = true
+else
+    game:Shutdown()
+end
 
 
 First_Sea = false
 Second_Sea = false
 Third_Sea = false
+Dungeon = false
+
 local placeId = game.PlaceId
 if placeId == 2753915549 then
-First_Sea = true
+    First_Sea = true
 elseif placeId == 79091703265657 then
-Second_Sea = true
+    Second_Sea = true
 elseif placeId == 100117331123089 then
-Third_Sea = true
+    Third_Sea = true
+elseif placeId == 73902483975735 then
+    Dungeon = true
 end
 
 --// Select Island
@@ -1670,14 +1689,19 @@ function CheckNearestTeleporter(aI)
     local min = math.huge
     local min2 = math.huge
     local y = game.PlaceId
-    local World1, World2, World3
+
+    local World1, World2, World3, Dungeon = false, false, false, false
+
     if y == 2753915549 then
         World1 = true
     elseif y == 79091703265657 then
         World2 = true
-    elseif y == 100117331123089  then
+    elseif y == 100117331123089 then
         World3 = true
+    elseif y == 73902483975735 then
+        Dungeon = true
     end
+
     local TableLocations = {}
     if World3 then
         TableLocations = {
@@ -6818,18 +6842,20 @@ task.spawn(function()
 end)
 
 
---Teleport
--- Verificar qual Sea o jogador está
-local Sea1, Sea2, Sea3 = false, false, false
+-- Teleport
+-- Verificar qual Sea / Dungeon o jogador está
+local Sea1, Sea2, Sea3, Dungeon = false, false, false, false
+
 if game.PlaceId == 2753915549 then
     Sea1 = true
 elseif game.PlaceId == 79091703265657 then
     Sea2 = true
 elseif game.PlaceId == 100117331123089 then
     Sea3 = true
-else
-
+elseif game.PlaceId == 73902483975735 then
+    Dungeon = true
 end
+
 
 local Section = Teleport:AddSection({"Move"})
 
@@ -6844,6 +6870,7 @@ end})
 Teleport:AddButton({"Sea 3", function()
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
 end})
+
 
 -- Lista de ilhas com base no Sea atual
 local IslandList = {}
