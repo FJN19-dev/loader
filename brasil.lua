@@ -175,7 +175,7 @@ local Third_Sea = false
 
 if placeId == 2753915549 then
     First_Sea = true
-elseif placeId == 4442272183 then
+elseif placeId == 79091703265657 then
     Second_Sea = true
 elseif placeId == 100117331123089 then
     Third_Sea = true
@@ -203,7 +203,7 @@ local World1, World2, World3 = false, false, false
 
 if placeId == 2753915549 then
     World1 = true
-elseif placeId == 4442272183 then
+elseif placeId == 79091703265657 then
     World2 = true
 elseif placeId == 100117331123089 then
     World3 = true
@@ -889,7 +889,7 @@ function CheckQuest()
 end
 
 local id = game.PlaceId
-if id == 2753915549 then World1 = true; elseif id == 4442272183 then World2 = true; elseif id == 100117331123089 then World3 = true; else game:Shutdown() end;
+if id == 2753915549 then World1 = true; elseif id == 79091703265657 then World2 = true; elseif id == 100117331123089 then World3 = true; else game:Shutdown() end;
 
 
 First_Sea = false
@@ -898,7 +898,7 @@ Third_Sea = false
 local placeId = game.PlaceId
 if placeId == 2753915549 then
 First_Sea = true
-elseif placeId == 4442272183 then
+elseif placeId == 79091703265657 then
 Second_Sea = true
 elseif placeId == 100117331123089 then
 Third_Sea = true
@@ -1673,7 +1673,7 @@ function CheckNearestTeleporter(aI)
     local World1, World2, World3
     if y == 2753915549 then
         World1 = true
-    elseif y == 4442272183 then
+    elseif y == 79091703265657 then
         World2 = true
     elseif y == 100117331123089  then
         World3 = true
@@ -5021,48 +5021,67 @@ if World2 then
 end
 
 if World2 then
-local Q = Quest:AddToggle({
-    Title = "Auto Key Rengoku (Backpack → Baú)",
-    Description = "",
-    Default = false
+local Toggle1 = Quest:AddToggle({
+    Name = "Auto Regonku",
+    Description = "Ele Não coloca a Chave No bau",
+    Default = false 
 })
 
-Q:OnChanged(function(Value)
-    _G.KeysRen = Value
+Toggle1:Callback(function(Value)
+    _G.Rengoku = Value
 end)
 
--- POSIÇÃO DO BAÚ
-local BauCFrame = CFrame.new(
-    6571.1201171875,
-    299.23028564453,
-    -6967.841796875
-)
+-- CFrame fixo antes de atacar o boss
+local CFrameBoss = CFrame.new(6403.5439453125, 340.29766845703, -6894.5595703125)
 
-spawn(function()
-    while task.wait(0.2) do
-        pcall(function()
-            if not _G.KeysRen then return end
+-------------------------------------------------
+-- LOOP PRINCIPAL
+-------------------------------------------------
+task.spawn(function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
 
-            -- SE A KEY APARECER NO BACKPACK OU CHARACTER
-            local key =
-                plr.Backpack:FindFirstChild(RenMon[3]) or
-                plr.Character:FindFirstChild(RenMon[3])
+    while task.wait(0.1) do
+        if _G.Rengoku then
+            -- Teleporta sempre para o CFrame inicial, mesmo sem boss
+            pcall(function()
+                topos(CFrameBoss)
+            end)
 
-            if key then
-                EquipWeapon(RenMon[3])
-                task.wait(0.1)
+            -- Espera o boss spawnar
+            local boss = nil
+            repeat
+                task.wait(0.2)
+                local enemies = workspace:FindFirstChild("Enemies")
+                if enemies then
+                    boss = enemies:FindFirstChild("Awakened Ice Admiral")
+                end
+            until (boss and boss:FindFirstChild("HumanoidRootPart") and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0) or not _G.Rengoku
 
-                -- IR DIRETO PRO BAÚ
-                topos(BauCFrame)
+            -- Se o boss existe, entra no loop de ataque
+            if boss then
+                repeat
+                    task.wait(0.05)
 
-                -- DESLIGAR
-                _G.KeysRen = false
-                Q:Set(false)
+                    if getgenv().SelectWeapon then
+                        pcall(function() EquipWeapon(getgenv().SelectWeapon) end)
+                    end
+
+                    pcall(function()
+                        -- Sempre 20 studs acima do boss
+                        topos(boss.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                    end)
+
+                until not _G.Rengoku
+                or boss.Humanoid.Health <= 0
+                or not boss.Parent
             end
-        end)
+        end
     end
 end)
 end
+
 
 if World2 then
 local Toggle1 = Quest:AddToggle({
@@ -6263,7 +6282,7 @@ end)
 local Sea1, Sea2, Sea3 = false, false, false
 if game.PlaceId == 2753915549 then
     Sea1 = true
-elseif game.PlaceId == 4442272183 then
+elseif game.PlaceId == 79091703265657 then
     Sea2 = true
 elseif game.PlaceId == 100117331123089 then
     Sea3 = true
