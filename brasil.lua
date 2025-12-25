@@ -2947,7 +2947,7 @@ spawn(function()
 end)
 
 Main:AddButton({
-    Name = "Tween TP Ilha",
+    Name = "Tween Ilha Dos Presentes",
     Callback = function()
         local TweenService = game:GetService("TweenService")
         local player = game.Players.LocalPlayer
@@ -7861,7 +7861,8 @@ Sea:AddDropdown({
         "Zone 3",
         "Zone 4",
         "Zone 5",
-        "Zone 6"
+        "Zone 6",
+        "Zone Infinita"
     },
     Callback = function(Value)
         getgenv().SelectedZone = Value
@@ -7940,6 +7941,8 @@ spawn(function()
                     -0.0654025897, 0.997858942, 2.02319411e-10,
                     -0.99428153, -0.0651681125, -0.0846010372
                 )
+            elseif getgenv().SelectedZone == "Zone Infinita" then
+                CFrameSelectedZone = CFrame.new(-10000000, 45, 37016.25)
             end
         end
     end)
@@ -8426,6 +8429,178 @@ Sea:AddToggle({
         StopTween(Value)
     end
 })
+
+Sea:AddToggle({
+    Name = "Auto Pirate Grand Brigade",
+    Default = false,
+    Callback = function(Value)
+        getgenv().RelzPirateGrandBrigade = Value
+        StopTween(Value)
+    end
+})
+spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            if not getgenv().RelzFishBoat then return end
+            for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                if v.Name == "FishBoat" and v:FindFirstChild("Engine") then
+                    repeat task.wait(0.1)
+                        local CFrameFishBoat = v.Engine.CFrame * CFrame.new(0, 10, 0)
+                        local player = game.Players.LocalPlayer
+                        local char = player and player.Character
+                        local root = char and char:FindFirstChild("HumanoidRootPart")
+                        if root and (v.Engine.Position - root.Position).Magnitude <= 50 then
+                            getgenv().SeaSkill = true
+                        else
+                            getgenv().SeaSkill = false
+                        end
+                        if root and (root.Position - CFrameFishBoat.Position).Magnitude > 2 then
+                            topos(CFrameFishBoat)
+                        end
+                        Skillaimbot = true
+                        AimBotSkillPosition = v.Engine.Position
+                    until 
+                        not v.Parent or v.Health.Value <= 0 or 
+                        not game:GetService("Workspace").Enemies:FindFirstChild("FishBoat") or 
+                        not v:FindFirstChild("Engine") or 
+                        not getgenv().RelzFishBoat
+                    Skillaimbot = false
+                    getgenv().SeaSkill = false
+                end
+            end
+        end)
+    end
+end)
+Sea:AddToggle({
+    Name = "Auto Terror Shark",
+    Default = false,
+    Callback = function(Value)
+        getgenv().AutoTerrorshark = Value
+        StopTween(Value)
+    end
+})
+Sea:AddToggle({
+    Name = "Auto Sea Beast",
+    Default = false,
+    Callback = function(Value)
+        getgenv().AutoSeaBest = Value
+        StopTween(Value)
+
+        if not Value then
+            getgenv().SeaSkill = false
+            Skillaimbot = false
+        end
+    end
+})
+function CheckSeaBeast()
+    local seaBeasts = game:GetService("Workspace"):FindFirstChild("SeaBeasts")
+    if not seaBeasts then return false end
+    for _, beast in ipairs(seaBeasts:GetChildren()) do
+        local humanoid = beast:FindFirstChild("Humanoid")
+        local rootPart = beast:FindFirstChild("HumanoidRootPart")
+        if humanoid and rootPart and humanoid.Health > 0 then
+            return true
+        end
+    end
+    return false
+end
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().AutoSeaBest then
+            pcall(function()
+                local workspace = game:GetService("Workspace")
+                local player = game.Players.LocalPlayer
+                if workspace:FindFirstChild("SeaBeasts") then
+                    for _, v in pairs(workspace.SeaBeasts:GetChildren()) do
+                        if CheckSeaBeast() then
+                            repeat
+                                wait()
+                                CFrameSeaBeast = v.HumanoidRootPart.CFrame * CFrame.new(0, 400, 0)
+                                if (CFrameSeaBeast.Position - player.Character.HumanoidRootPart.CFrame.Position).Magnitude <= 50 then
+                                    getgenv().SeaSkill = true
+                                else
+                                    getgenv().SeaSkill = false
+                                end
+                                Skillaimbot = true
+                                AimBotSkillPosition = v.HumanoidRootPart.CFrame.Position
+                                topos(CFrameSeaBeast)
+                            until 
+                                not getgenv().AutoSeaBest or 
+                                not v:FindFirstChild("Humanoid") or 
+                                not v:FindFirstChild("HumanoidRootPart") or 
+                                v.Humanoid.Health < 0 or 
+                                not v.Parent
+                            Skillaimbot = false
+                            getgenv().SeaSkill = false
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+local function UseSkill(key, holdTime)
+    game:service('VirtualInputManager'):SendKeyEvent(true, key, false, game)
+    task.wait(holdTime)
+    game:service('VirtualInputManager'):SendKeyEvent(false, key, false, game)
+end
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            if getgenv().SeaSkill then
+                local player = game.Players.LocalPlayer
+                local backpack = player.Backpack                
+                if getgenv().UseSeaFruitSkill and not DoneSkillFruit then
+                    for _, v in pairs(backpack:GetChildren()) do
+                        if v:IsA("Tool") and v.ToolTip == "Blox Fruit" then
+                            player.Character.Humanoid:EquipTool(v)
+                        end
+                    end                    
+                    if getgenv().SkillFruitZ then UseSkill("Z", getgenv().SeaHoldSKillZ) end
+                    if getgenv().SkillFruitX then UseSkill("X", getgenv().SeaHoldSKillX) end
+                    if getgenv().SkillFruitC then UseSkill("C", getgenv().SeaHoldSKillC) end
+                    if getgenv().SkillFruitV then UseSkill("V", getgenv().SeaHoldSKillV) end
+                    if getgenv().SkillFruitF then UseSkill("F", getgenv().SeaHoldSKillF) end                    
+                    DoneSkillFruit = true
+                end                
+                if getgenv().UseSeaMeleeSkill and not DoneSkillMelee then
+                    for _, v in pairs(backpack:GetChildren()) do
+                        if v:IsA("Tool") and v.ToolTip == "Melee" then
+                            player.Character.Humanoid:EquipTool(v)
+                        end
+                    end                    
+                    if getgenv().SkillMeleeZ then UseSkill("Z", 0) end
+                    if getgenv().SkillMeleeX then UseSkill("X", 0) end
+                    if getgenv().SkillMeleeC then UseSkill("C", 0) end                    
+                    DoneSkillMelee = true
+                end                
+                if getgenv().UseSeaSwordSkill and not DoneSkillSword then
+                    for _, v in pairs(backpack:GetChildren()) do
+                        if v:IsA("Tool") and v.ToolTip == "Sword" then
+                            player.Character.Humanoid:EquipTool(v)
+                        end
+                    end                    
+                    if getgenv().SkillSwordZ then UseSkill("Z", 0) end
+                    if getgenv().SkillSwordX then UseSkill("X", 0) end                    
+                    DoneSkillSword = true
+                end                
+                if getgenv().UseSeaGunSkill and not DoneSkillGun then
+                    for _, v in pairs(backpack:GetChildren()) do
+                        if v:IsA("Tool") and v.ToolTip == "Gun" then
+                            player.Character.Humanoid:EquipTool(v)
+                        end
+                    end                    
+                    if getgenv().SkillGunZ then UseSkill("Z", 0.1) end
+                    if getgenv().SkillGunX then UseSkill("X", 0.1) end
+                    
+                    DoneSkillGun = true
+                end                
+                task.wait(0.5)
+                DoneSkillGun, DoneSkillSword, DoneSkillFruit, DoneSkillMelee = false, false, false, false
+            end
+        end)
+    end
+end)         
 
 
 
