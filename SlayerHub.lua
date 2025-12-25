@@ -2721,9 +2721,9 @@ spawn(function()
                     local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
                     
                     if distance > 1500 then                           -- Teleporte anti-kick
-                        TP1(CFrameQuest * CFrame.new(0, 25, 5))
+                        BTP(CFrameQuest * CFrame.new(0, 25, 5))
                     else
-                        TP1(CFrameQuest)                             -- Tp normal
+                        BTP(CFrameQuest)                             -- Tp normal
                     end
 
                     -- Quando chegar no NPC → inicia quest
