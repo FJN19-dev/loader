@@ -887,6 +887,22 @@ function CheckQuest()
             LevelQuest = 2
             NameQuest = "SubmergedQuest3"
             NameMon = "Grand Devotee"
+            local Player = game.Players.LocalPlayer
+local HRP = Player.Character.HumanoidRootPart
+
+-- se estiver longe da ilha submersa
+if (CFrameQuest.Position - HRP.Position).Magnitude > 10000 then
+    
+    -- fala com o NPC que libera a ilha
+    game:GetService("ReplicatedStorage")
+        :WaitForChild("Modules")
+        :WaitForChild("Net")
+        :WaitForChild("RF/SubmarineWorkerSpeak")
+        :InvokeServer("AskKilledTikiBoss")
+
+    task.wait(1.5)
+end
+
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
       end
@@ -2705,7 +2721,7 @@ spawn(function()
                     local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
                     
                     if distance > 1500 then                           -- Teleporte anti-kick
-                        BTP(CFrameQuest * CFrame.new(0, 25, 5))
+                        TP1(CFrameQuest * CFrame.new(0, 25, 5))
                     else
                         TP1(CFrameQuest)                             -- Tp normal
                     end
