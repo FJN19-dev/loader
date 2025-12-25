@@ -889,20 +889,7 @@ function CheckQuest()
             NameMon = "Grand Devotee"
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
-            if getgenv().AutoFarm 
-and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-    
-    local args = {
-        "AskKilledTikiBoss"
-    }
-
-    game:GetService("ReplicatedStorage")
-        :WaitForChild("Modules")
-        :WaitForChild("Net")
-        :WaitForChild("RF/SubmarineWorkerSpeak")
-        :InvokeServer(unpack(args))
-end
-end
+      end
     end
 end
 
@@ -2718,7 +2705,7 @@ spawn(function()
                     local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
                     
                     if distance > 1500 then                           -- Teleporte anti-kick
-                        TP1(CFrameQuest * CFrame.new(0, 25, 5))
+                        BTP(CFrameQuest * CFrame.new(0, 25, 5))
                     else
                         TP1(CFrameQuest)                             -- Tp normal
                     end
