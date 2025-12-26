@@ -889,6 +889,21 @@ function CheckQuest()
             NameMon = "Grand Devotee"
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
+
+             -- Falar com NPC antes
+        if getgenv().AutoFarm then
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local Modules = ReplicatedStorage:WaitForChild("Modules")
+            local Net = Modules:WaitForChild("Net")
+            local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+            local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+        if (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+            RF:InvokeServer("TravelToSubmergedIsland")
+            task.wait(0.5)
+            CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+            task.wait(1) 
+        end
       end
     end
 end
@@ -2945,6 +2960,37 @@ spawn(function()
         end
     end
 end)
+
+getgenv().AutoWinterSpin = false
+
+local Toggle = Main:AddToggle({
+    Name = "Auto Roleta Candy ",
+    Default = false
+})
+
+task.spawn(function()
+    while true do
+        if getgenv().AutoWinterSpin then
+            game:GetService("ReplicatedStorage")
+                :WaitForChild("Remotes")
+                :WaitForChild("CommF_")
+                :InvokeServer("Cousin", "Check", "F2PXmasWeek2Gacha25")
+
+            task.wait(0.3)
+
+            game:GetService("ReplicatedStorage")
+                :WaitForChild("Remotes")
+                :WaitForChild("CommF_")
+                :InvokeServer("Cousin", "F2PXmasWeek2Gacha25")
+        end
+        task.wait(1)
+    end
+end)
+
+Toggle:Callback(function(Value)
+    getgenv().AutoWinterSpin = Value
+end)
+
 
 Main:AddButton({
     Name = "Tween Ilha Dos Presentes",
