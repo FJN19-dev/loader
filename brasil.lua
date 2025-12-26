@@ -882,54 +882,56 @@ function CheckQuest()
             NameMon = "High Disciple"
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9828.087890625, -1940.908935546875, 9693.0634765625)
-        elseif MyLevel >= 2725 and MyLevel <= 2800 then
-            Mon = "Grand Devotee"
-            LevelQuest = 2
-            NameQuest = "SubmergedQuest3"
-            NameMon = "Grand Devotee"
-            CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
-            CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
+elseif MyLevel >= 2725 and MyLevel <= 2800 then
+    Mon = "Grand Devotee"
+    LevelQuest = 2
+    NameQuest = "SubmergedQuest3"
+    NameMon = "Grand Devotee"
+    CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
+    CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
 
-    -- Flag para controlar se já foi ao NPC
-    if getgenv().AutoFarm then
-        if not getgenv().WentToSubmergedNPC then
-            local ReplicatedStorage = game:GetService("ReplicatedStorage")
-            local Modules = ReplicatedStorage:WaitForChild("Modules")
-            local Net = Modules:WaitForChild("Net")
-            local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
-            local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+    -- Controle de fluxo local
+    local goingToNPC = false
 
-            local player = game.Players.LocalPlayer
-            local character = player.Character or player.CharacterAdded:Wait()
-            local humanoidRoot = character:WaitForChild("HumanoidRootPart")
+    if getgenv().AutoFarm and not goingToNPC then
+        goingToNPC = true -- bloqueia outras ações
 
-            -- CFrame do NPC
-            local npcCFrame = CFrame.new(
-                -16267.7178, 25.223526, 1372.2135,
-                0.473281175, -7.09690227e-08, 0.88091141,
-                -1.6041092e-08, 1, 8.91814622e-08,
-                -0.88091141, -5.63386884e-08, 0.473281175
-            )
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Modules = ReplicatedStorage:WaitForChild("Modules")
+        local Net = Modules:WaitForChild("Net")
+        local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+        local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
-            -- Teleporta para o NPC
-            topos(npcCFrame)
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoidRoot = character:WaitForChild("HumanoidRootPart")
+
+        -- CFrame do NPC
+        local npcCFrame = CFrame.new(
+            -16267.7178, 25.223526, 1372.2135,
+            0.473281175, -7.09690227e-08, 0.88091141,
+            -1.6041092e-08, 1, 8.91814622e-08,
+            -0.88091141, -5.63386884e-08, 0.473281175
+        )
+
+        -- Vai até o NPC
+        topos(npcCFrame)
+        task.wait(0.5)
+
+        -- Só invoca o NPC se ainda não estiver na ilha
+        if humanoidRoot.Position.Y < -1500 then
+            RF:InvokeServer("TravelToSubmergedIsland")
             task.wait(0.5)
-
-            -- Só invoca o NPC se ainda não estiver na Submerged Island
-            if humanoidRoot.Position.Y < -1500 then
-                RF:InvokeServer("TravelToSubmergedIsland")
-                task.wait(0.5)
-                CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
-                task.wait(1)
-            end
-
-            -- Marca que já foi ao NPC
-            getgenv().WentToSubmergedNPC = true
+            CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+            task.wait(1)
         end
+
+        goingToNPC = false -- libera o fluxo
     end
 end
 end
 end
+
 
 local id = game.PlaceId
 if id == 2753915549 then
