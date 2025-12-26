@@ -7679,7 +7679,7 @@ local Section = Fruit:AddSection({"Dungeon"})
 -- TOGGLE
 -------------------------------------------------
 local Toggle1 = Fruit:AddToggle({ 
-    Name = "Auto Farm Dungeon (Exit TP)", 
+    Name = "Auto Farm Dungeon", 
     Description = "",
     Default = false 
 })
@@ -7744,7 +7744,7 @@ local function GetCurrentFloor()
 
     local closest, dist = 1, math.huge
 
-    for i = 1, 15 do
+    for i = 1, 50 do
         local floor = dungeon:FindFirstChild(tostring(i))
         if floor and floor:IsA("Model") then
             for _, v in pairs(floor:GetDescendants()) do
@@ -9621,7 +9621,7 @@ spawn(function()
 		end
 	end
 end)
-getgenv().FastAttack = true -- igual ao Default
+getgenv().FastAttack = true
 
 local Toggle1 = Settings:AddToggle({
     Name = "Fast Attack",
@@ -9629,28 +9629,17 @@ local Toggle1 = Settings:AddToggle({
     Default = true
 })
 
-local FastAttackTask
-
-local function FastAttackLoop()
-    while getgenv().FastAttack do
-        if type(AttackNoCoolDown) == "function" then
+task.spawn(function()
+    while true do
+        if getgenv().FastAttack and type(AttackNoCoolDown) == "function" then
             AttackNoCoolDown()
         end
         task.wait(0.1)
     end
-end
-
--- inicia automaticamente
-FastAttackTask = task.spawn(FastAttackLoop)
+end)
 
 Toggle1:Callback(function(Value)
     getgenv().FastAttack = Value
-
-    if Value and not FastAttackTask then
-        FastAttackTask = task.spawn(FastAttackLoop)
-    elseif not Value and FastAttackTask then
-        FastAttackTask = nil
-    end
 end)
 
 getgenv().BringMonster = true -- sincroniza com Default
