@@ -882,7 +882,7 @@ function CheckQuest()
             NameMon = "High Disciple"
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9828.087890625, -1940.908935546875, 9693.0634765625)
-elseif MyLevel >= 2725 and MyLevel <= 2800 then
+        elseif MyLevel >= 2725 and MyLevel <= 2800 then
     Mon = "Grand Devotee"
     LevelQuest = 2
     NameQuest = "SubmergedQuest3"
@@ -890,43 +890,49 @@ elseif MyLevel >= 2725 and MyLevel <= 2800 then
     CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
     CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
 
-    -- Controle de fluxo local
-    local goingToNPC = false
+    if getgenv().AutoFarm then
+        -- Função para ir ao NPC
+        local function gotoNPC()
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local Modules = ReplicatedStorage:WaitForChild("Modules")
+            local Net = Modules:WaitForChild("Net")
+            local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+            local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
-    if getgenv().AutoFarm and not goingToNPC then
-        goingToNPC = true -- bloqueia outras ações
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoidRoot = character:WaitForChild("HumanoidRootPart")
 
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local Modules = ReplicatedStorage:WaitForChild("Modules")
-        local Net = Modules:WaitForChild("Net")
-        local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
-        local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+            -- CFrame do NPC
+            local npcCFrame = CFrame.new(
+                -16267.7178, 25.223526, 1372.2135,
+                0.473281175, -7.09690227e-08, 0.88091141,
+                -1.6041092e-08, 1, 8.91814622e-08,
+                -0.88091141, -5.63386884e-08, 0.473281175
+            )
 
+            -- Teleporta para o NPC e espera chegar
+            topos(npcCFrame)
+            task.wait(0.5)
+
+            -- Só invoca se ainda não estiver na ilha
+            if humanoidRoot.Position.Y < -1500 then
+                RF:InvokeServer("TravelToSubmergedIsland")
+                task.wait(0.5)
+                CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+                task.wait(1)
+            end
+        end
+
+        -- Chama a função e só depois vai para a quest
+        gotoNPC()
+
+        -- Agora sim move para o CFrame da quest
         local player = game.Players.LocalPlayer
         local character = player.Character or player.CharacterAdded:Wait()
         local humanoidRoot = character:WaitForChild("HumanoidRootPart")
-
-        -- CFrame do NPC
-        local npcCFrame = CFrame.new(
-            -16267.7178, 25.223526, 1372.2135,
-            0.473281175, -7.09690227e-08, 0.88091141,
-            -1.6041092e-08, 1, 8.91814622e-08,
-            -0.88091141, -5.63386884e-08, 0.473281175
-        )
-
-        -- Vai até o NPC
-        topos(npcCFrame)
+        humanoidRoot.CFrame = CFrameQuest
         task.wait(0.5)
-
-        -- Só invoca o NPC se ainda não estiver na ilha
-        if humanoidRoot.Position.Y < -1500 then
-            RF:InvokeServer("TravelToSubmergedIsland")
-            task.wait(0.5)
-            CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
-            task.wait(1)
-        end
-
-        goingToNPC = false -- libera o fluxo
     end
 end
 end
@@ -2713,55 +2719,74 @@ Toggle1:Callback(function(Value)
     StopTween(getgenv().AutoFarm)
 end)
 
+-- Flag local para controlar se estamos indo ao NPC
+local goingToNPC = false
 
+-- Função para ir até o NPC da quest, se existir
+local function gotoQuestNPC()
+    if goingToNPC then return end  -- já está indo, não faz nada
+    goingToNPC = true
+
+    local npcExists = workspace:FindFirstChild("SubmarineWorker") -- exemplo NPC
+    local player = game:GetService("Players").LocalPlayer
+    local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRoot then goingToNPC = false return end
+
+    if npcExists then
+        -- Teleporta para o NPC
+        topos(npcExists.HumanoidRootPart.CFrame)
+        task.wait(0.5)
+        local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
+        CommF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+    else
+        -- Vai direto para a quest
+        TP1(CFrameQuest)
+        task.wait(0.5)
+    end
+
+    goingToNPC = false
+end
+
+-- Loop principal do AutoFarm
 spawn(function()
     while task.wait(0.5) do
         if getgenv().AutoFarm then
+            -- Espera terminar de ir ao NPC antes de continuar
+            if goingToNPC then continue end
+
             pcall(function()
-                
                 CheckQuest()
 
                 local player = game:GetService("Players").LocalPlayer
                 local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-
                 if not humanoidRoot then return end
-                
+
                 local questGui = player.PlayerGui.Main.Quest
                 local questVisible = questGui.Visible
                 local questTitle = questGui.Container.QuestTitle.Title.Text
-                
-                -- Se a quest for diferente → abandona
-                if not string.find(questTitle, NameMon) then
-                    getgenv().StartMagnet = false
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
-                end
 
                 -- Se não tiver quest ativa → inicia
                 if not questVisible then
-                    
                     getgenv().StartMagnet = false
                     CheckQuest()
 
-                    local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
-                    
-                    if distance > 1500 then                           -- Teleporte anti-kick
-                        TP1(CFrameQuest * CFrame.new(0, 25, 5))
-                    else
-                        TP1(CFrameQuest)                             -- Tp normal
-                    end
+                    -- Chama a função para ir ao NPC ou direto para quest
+                    gotoQuestNPC()
 
-                    -- Quando chegar no NPC → inicia quest
+                    -- Quando chegar no NPC/quest → inicia quest
                     if (humanoidRoot.Position - CFrameQuest.Position).Magnitude < 20 then
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
                     end
-
-                else -- Se já tiver quest → ir matar NPCs
-                    
+                else
+                    -- Loop de combate aos mobs
                     for _, mob in pairs(workspace.Enemies:GetChildren()) do
                         if mob:FindFirstChild("HumanoidRootPart") and 
                            mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and 
                            mob.Name == Mon then
-            
+
                             repeat task.wait(0.1)
                                 AutoHaki()
                                 EquipWeapon(getgenv().SelectWeapon)
@@ -2775,9 +2800,6 @@ spawn(function()
                                 getgenv().StartMagnet = true
                                 
                                 sethiddenproperty(player, "SimulationRadius", math.huge)
-
-                                ------------------------------------------------
-
                             until not getgenv().AutoFarm or mob.Humanoid.Health <= 0 or not mob.Parent or not questGui.Visible
                         end
                     end
@@ -2786,6 +2808,7 @@ spawn(function()
         end
     end
 end)
+
 
 
 local Players = game:GetService("Players")
