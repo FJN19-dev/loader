@@ -854,6 +854,24 @@ function CheckQuest()
             NameMon = "Reef Bandit"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(10736.6191, -2087.8439, 9338.4882)
+        -- Falar com NPC antes
+if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+        end
+     end
         elseif MyLevel >= 2625 and MyLevel <= 2649 then
             Mon = "Coral Pirate"
             LevelQuest = 2
@@ -861,6 +879,24 @@ function CheckQuest()
             NameMon = "Coral Pirate"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(10965.1025, -2158.8842, 9177.2597)
+        -- Falar com NPC antes
+if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+        end
+     end
         elseif MyLevel >= 2650 and MyLevel <= 2674 then
             Mon = "Sea Chanter"
             LevelQuest = 1
@@ -868,6 +904,24 @@ function CheckQuest()
             NameMon = "Sea Chanter"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(10621.0342, -2087.8440, 10102.0332)
+        -- Falar com NPC antes
+if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+        end
+     end
         elseif MyLevel >= 2675 and MyLevel <= 2699 then
             Mon = "Ocean Prophet"
             LevelQuest = 2
@@ -875,6 +929,24 @@ function CheckQuest()
             NameMon = "Ocean Prophet"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(11056.1445, -2001.6717, 10117.4493)
+        -- Falar com NPC antes
+if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+        end
+     end
         elseif MyLevel >= 2700 and MyLevel <= 2724 then
             Mon = "High Disciple"
             LevelQuest = 1
@@ -882,60 +954,52 @@ function CheckQuest()
             NameMon = "High Disciple"
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9828.087890625, -1940.908935546875, 9693.0634765625)
+        -- Falar com NPC antes
+if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+        end
+     end
         elseif MyLevel >= 2725 and MyLevel <= 2800 then
-    Mon = "Grand Devotee"
-    LevelQuest = 2
-    NameQuest = "SubmergedQuest3"
-    NameMon = "Grand Devotee"
-    CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
-    CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
+            Mon = "Grand Devotee"
+            LevelQuest = 2
+            NameQuest = "SubmergedQuest3"
+            NameMon = "Grand Devotee"
+            CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
+            CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
+        -- Falar com NPC antes
+if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
-    if getgenv().AutoFarm then
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local Modules = ReplicatedStorage:WaitForChild("Modules")
-        local Net = Modules:WaitForChild("Net")
-        local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
-        local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
 
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local humanoidRoot = character:WaitForChild("HumanoidRootPart")
-
-        --------------------------------------
-        -- 1️⃣ Teleporta para Tiki Island
-        local tikiCFrame = CFrame.new(-16267.7178, 25.223526, 1372.2135,
-                                      0.473281175, -7.09690227e-08, 0.88091141,
-                                      -1.6041092e-08, 1, 8.91814622e-08,
-                                      -0.88091141, -5.63386884e-08, 0.473281175)
-        topos(tikiCFrame)
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
         task.wait(0.5)
-
-        --------------------------------------
-        -- 2️⃣ Falar com o NPC (só se não estiver na Submerged Island)
-        if humanoidRoot.Position.Y < -1500 then
-            RF:InvokeServer("TravelToSubmergedIsland")
-            task.wait(0.5)
-            CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
-            task.wait(1)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
         end
-
-        --------------------------------------
-        -- 3️⃣ Ir para a quest e iniciar
-        local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
-        if distance > 1500 then
-            TP1(CFrameQuest * CFrame.new(0, 25, 5)) -- teleporte seguro
-        else
-            TP1(CFrameQuest)
-        end
-        task.wait(0.5)
-
-        -- Quando chegar perto, inicia a quest
-        if (humanoidRoot.Position - CFrameQuest.Position).Magnitude < 20 then
-            CommF:InvokeServer("StartQuest", NameQuest, LevelQuest)
-        end
-    end
-
-
+     end
+  end
+end
+end
 
 local id = game.PlaceId
 if id == 2753915549 then
