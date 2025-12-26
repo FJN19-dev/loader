@@ -883,31 +883,61 @@ function CheckQuest()
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9828.087890625, -1940.908935546875, 9693.0634765625)
         elseif MyLevel >= 2725 and MyLevel <= 2800 then
-            Mon = "Grand Devotee"
-            LevelQuest = 2
-            NameQuest = "SubmergedQuest3"
-            NameMon = "Grand Devotee"
-            CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
-            CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
+    Mon = "Grand Devotee"
+    LevelQuest = 2
+    NameQuest = "SubmergedQuest3"
+    NameMon = "Grand Devotee"
+    CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
+    CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
 
-             -- Falar com NPC antes
-        if getgenv().AutoFarm then
+    if getgenv().AutoFarm then
+        -- Função para ir ao NPC
+        local function gotoNPC()
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
             local Modules = ReplicatedStorage:WaitForChild("Modules")
             local Net = Modules:WaitForChild("Net")
             local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
             local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
-        if (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-            RF:InvokeServer("TravelToSubmergedIsland")
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoidRoot = character:WaitForChild("HumanoidRootPart")
+
+            -- CFrame do NPC
+            local npcCFrame = CFrame.new(
+                -16267.7178, 25.223526, 1372.2135,
+                0.473281175, -7.09690227e-08, 0.88091141,
+                -1.6041092e-08, 1, 8.91814622e-08,
+                -0.88091141, -5.63386884e-08, 0.473281175
+            )
+
+            -- Teleporta para o NPC e espera chegar
+            topos(npcCFrame)
             task.wait(0.5)
-            CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
-            task.wait(1) 
-          end
+
+            -- Só invoca se ainda não estiver na ilha
+            if humanoidRoot.Position.Y < -1500 then
+                RF:InvokeServer("TravelToSubmergedIsland")
+                task.wait(0.5)
+                CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+                task.wait(1)
+            end
         end
-      end
+
+        -- Chama a função e só depois vai para a quest
+        gotoNPC()
+
+        -- Agora sim move para o CFrame da quest
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoidRoot = character:WaitForChild("HumanoidRootPart")
+        humanoidRoot.CFrame = CFrameQuest
+        task.wait(0.5)
     end
 end
+end
+end
+
 
 local id = game.PlaceId
 if id == 2753915549 then
@@ -2962,35 +2992,32 @@ spawn(function()
     end
 end)
 
-getgenv().AutoWinterSpin = false
 
 local Toggle = Main:AddToggle({
-    Name = "Auto Roleta Candy ",
+    Name = "Auto Winter Spin",
     Default = false
 })
 
+getgenv().AutoWinterSpin = false
+
 task.spawn(function()
+    local CommF = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_")
+    
     while true do
         if getgenv().AutoWinterSpin then
-            game:GetService("ReplicatedStorage")
-                :WaitForChild("Remotes")
-                :WaitForChild("CommF_")
-                :InvokeServer("Cousin", "Check", "F2PXmasWeek2Gacha25")
-
+            CommF:InvokeServer("Cousin", "F2PXmasWeek2Gacha25")
             task.wait(0.3)
 
-            game:GetService("ReplicatedStorage")
-                :WaitForChild("Remotes")
-                :WaitForChild("CommF_")
-                :InvokeServer("Cousin", "F2PXmasWeek2Gacha25")
+            CommF:InvokeServer("Cousin", "Check", "F2PXmasWeek2Gacha25")
         end
-        task.wait(1)
+        task.wait(1) 
     end
 end)
 
 Toggle:Callback(function(Value)
     getgenv().AutoWinterSpin = Value
 end)
+
 
 
 Main:AddButton({
@@ -4033,144 +4060,90 @@ local Paragraph = Sub:AddParagraph({"Katakuri V1", "Para matar Katakuri V1 Vai E
 end
 
 if World3 then
-local Toggle1 = Sub:AddToggle({
-  Name = "Auto Katakuri V2",
-  Description = "",
-  Default = false 
-})
-Toggle1:Callback(function(Value)
-    getgenv().AutoDoughKing = Value
-    StopTween(getgenv().AutoDoughKing) 
-end)
-spawn(function()
-    game:GetService("RunService").Heartbeat:Connect(function()
-        pcall(function()
-            for i, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                if getgenv().AutoDoughKing and StartCakegetgenv().StartMagnet and 
-                   (v.Name == "Cookie Crafter" or v.Name == "Cake Guard" or v.Name == "Baking Staff" or v.Name == "Head Baker") and 
-                   (v.HumanoidRootPart.Position - POSCAKE.Position).magnitude <= 300 then
-                    v.HumanoidRootPart.CFrame = POSCAKE
-                    v.HumanoidRootPart.CanCollide = false
-                    if v.Humanoid:FindFirstChild("Animator") then
-                        v.Humanoid.Animator:Destroy()
-                    end
-                    sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
-                end
-            end
-        end)
+    -- Toggle na GUI
+    local Toggle1 = Sub:AddToggle({
+        Name = "Auto Katakuri V2",
+        Description = "",
+        Default = false
+    })
+
+    -- Flag global
+    getgenv().AutoDoughKing = false
+
+    Toggle1:Callback(function(Value)
+        getgenv().AutoDoughKing = Value
     end)
-end)
-spawn(function()
-    while task.wait(0.2) do
-        if getgenv().AutoDoughKing and World3 then
+
+    -- Função de puxar mobs e combate
+    spawn(function()
+        local RunService = game:GetService("RunService")
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local Workspace = game:GetService("Workspace")
+
+        RunService.Heartbeat:Connect(function()
             pcall(function()
-                if game.Players.LocalPlayer.Backpack:FindFirstChild("God's Chalice") or 
-                   game.Players.LocalPlayer.Character:FindFirstChild("God's Chalice") then
-                    if string.find(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SweetChaliceNpc"), "Where") then
-                        game.StarterGui:SetCore("SendNotification", {
-                            Title = "Notification",
-                            Text = "Not Have Enough Material",
-                            Icon = "http://www.roblox.com/asset/?id=",
-                            Duration = 2.5
-                        })
-                    else
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SweetChaliceNpc")
-                    end
-                elseif game.Players.LocalPlayer.Backpack:FindFirstChild("Sweet Chalice") or 
-                       game.Players.LocalPlayer.Character:FindFirstChild("Sweet Chalice") then
-                    if string.find(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CakePrinceSpawner"), 
-                                   "Do you want to open the portal now?") then
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CakePrinceSpawner")
-                    else
-                        if game.Workspace.Enemies:FindFirstChild("Baking Staff") or 
-                           game.Workspace.Enemies:FindFirstChild("Head Baker") or 
-                           game.Workspace.Enemies:FindFirstChild("Cake Guard") or 
-                           game.Workspace.Enemies:FindFirstChild("Cookie Crafter") then
-                            for i, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do  
-                                if (v.Name == "Baking Staff" or v.Name == "Head Baker" or 
-                                    v.Name == "Cake Guard" or v.Name == "Cookie Crafter") and 
-                                    v.Humanoid.Health > 0 then
-                                    repeat
-                                        task.wait(0.05)
-                                        AutoHaki()
-                                        EquipWeapon(getgenv().SelectWeapon)
-                                        StartCakegetgenv().StartMagnet = true
-                                        POSCAKE = v.HumanoidRootPart.CFrame
-                                        topos(v.HumanoidRootPart.CFrame * Pos)
-                                    until getgenv().AutoDoughKing == false or 
-                                          game:GetService("ReplicatedStorage"):FindFirstChild("Cake Prince") or 
-                                          not v.Parent or 
-                                          v.Humanoid.Health <= 0
-                                end
+                if not getgenv().AutoDoughKing then return end
+
+                for i, mob in pairs(Workspace.Enemies:GetChildren()) do
+                    if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") then
+                        local mobName = mob.Name
+                        -- Lista de mobs do Dough King
+                        local validMobs = {"Cookie Crafter", "Cake Guard", "Baking Staff", "Head Baker", "Dough King"}
+
+                        if table.find(validMobs, mobName) and mob.Humanoid.Health > 0 then
+                            -- Teleporta para o mob
+                            topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
+                            mob.HumanoidRootPart.CanCollide = false
+
+                            -- Remove animator se existir
+                            if mob.Humanoid:FindFirstChild("Animator") then
+                                mob.Humanoid.Animator:Destroy()
                             end
-                        else
-                            StartCakegetgenv().StartMagnet = false
-                            topos(CFrame.new(-1820.063, 210.748, -12297.496))
-                        end
-                    end
-                elseif game.ReplicatedStorage:FindFirstChild("Dough King") or 
-                       game:GetService("Workspace").Enemies:FindFirstChild("Dough King") then
-                    if game:GetService("Workspace").Enemies:FindFirstChild("Dough King") then
-                        for i, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do 
-                            if v.Name == "Dough King" then
-                                repeat
-                                    task.wait(0.05)
-                                    AutoHaki()
-                                    EquipWeapon(getgenv().SelectWeapon)
-                                    v.HumanoidRootPart.CanCollide = false
-                                    topos(v.HumanoidRootPart.CFrame * Pos)
-                                until getgenv().AutoDoughKing == false or 
-                                      not v.Parent or 
-                                      v.Humanoid.Health <= 0
-                            end    
-                        end    
-                    else
-                        topos(CFrame.new(-2009.280, 4532.972, -14937.308))
-                    end
-                elseif game.Players.LocalPlayer.Backpack:FindFirstChild("Red Key") or 
-                       game.Players.LocalPlayer.Character:FindFirstChild("Red Key") then
-                    local args = {
-                        [1] = "CakeScientist",
-                        [2] = "Check"
-                    }
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                else
-                    if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == true then
-                        if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Diablo") or 
-                           string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Deandre") or 
-                           string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Urban") then
-                            if game:GetService("Workspace").Enemies:FindFirstChild("Diablo") or 
-                               game:GetService("Workspace").Enemies:FindFirstChild("Deandre") or 
-                               game:GetService("Workspace").Enemies:FindFirstChild("Urban") then
-                                for i, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                                    if v.Name == "Diablo" or v.Name == "Deandre" or v.Name == "Urban" then
-                                        if v:FindFirstChild("Humanoid") and 
-                                           v:FindFirstChild("HumanoidRootPart") and 
-                                           v.Humanoid.Health > 0 then
-                                            repeat
-                                                task.wait(0.05)
-                                                AutoHaki()
-                                                EquipWeapon(getgenv().SelectWeapon)    
-                                                v.HumanoidRootPart.CanCollide = false
-                                                v.Humanoid.WalkSpeed = 0
-                                                topos(v.HumanoidRootPart.CFrame * Pos)                                                    
-                                                sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge)
-                                            until getgenv().AutoDoughKing == false or 
-                                                  v.Humanoid.Health <= 0 or 
-                                                  not v.Parent or 
-                                                  game.Players.LocalPlayer.Backpack:FindFirstChild("God's Chalice") or 
-                                                  game.Players.LocalPlayer.Character:FindFirstChild("God's Chalice")
-                                        end
-                                    end
-                                end
-                            end
+
+                            -- Aumenta SimulationRadius
+                            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+
+                            -- Ataca enquanto o mob estiver vivo e AutoDoughKing ligado
+                            repeat
+                                task.wait(0.05)
+                                AutoHaki() -- Função de haki automática
+                                EquipWeapon(getgenv().SelectWeapon) -- Equipa arma selecionada
+                            until not getgenv().AutoDoughKing or mob.Humanoid.Health <= 0 or not mob.Parent
                         end
                     end
                 end
             end)
+        end)
+    end)
+
+    -- Função de interação com NPC e objetos (Chalice)
+    spawn(function()
+        while task.wait(0.2) do
+            if not getgenv().AutoDoughKing then continue end
+
+            local CommF = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_")
+            local Backpack = LocalPlayer.Backpack
+            local Character = LocalPlayer.Character
+
+            -- Checa os chalices
+            if Backpack:FindFirstChild("God's Chalice") or Character:FindFirstChild("God's Chalice") then
+                local response = CommF:InvokeServer("SweetChaliceNpc")
+                if not string.find(response, "Where") then
+                    CommF:InvokeServer("SweetChaliceNpc")
+                end
+            elseif Backpack:FindFirstChild("Sweet Chalice") or Character:FindFirstChild("Sweet Chalice") then
+                local response = CommF:InvokeServer("CakePrinceSpawner")
+                if string.find(response, "Do you want to open the portal now?") then
+                    CommF:InvokeServer("CakePrinceSpawner")
+                end
+            elseif Workspace.Enemies:FindFirstChild("Dough King") then
+                -- Puxado e atacado pelo loop acima
+            elseif Backpack:FindFirstChild("Red Key") or Character:FindFirstChild("Red Key") then
+                CommF:InvokeServer("CakeScientist", "Check")
+            end
         end
-    end
-end)
+    end)
 end
 
 if World3 then
@@ -4181,10 +4154,9 @@ local Toggle1 = Sub:AddToggle({
 })
 
 Toggle1:Callback(function(Value)
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
-        "CakePrinceSpawner",
-        Value
-    )
+    if Value then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CakePrinceSpawner", true)
+    end
 end)
 end
 
