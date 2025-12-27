@@ -3600,12 +3600,32 @@ if World3 then
 local Section = Sub:AddSection({"Ossos"})
 end
 
-if World3 then 
-local Paragraph = Sub:AddParagraph({"Farma Osso", "Se Você for Farma Osso Vai na aba Main e muda O modo de Farme Pra bone e Start farm"})
+local RunService = game:GetService("RunService")
+local NoclipConnection
+
+local function EnableNoclip()
+    if NoclipConnection then return end
+    NoclipConnection = RunService.Stepped:Connect(function()
+        local char = game.Players.LocalPlayer.Character
+        if char then
+            for _, v in pairs(char:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
+                end
+            end
+        end
+    end)
 end
 
--- Toggle para AutoFarm Bone (sem dropdown)
-if World3 then  -- só cria o toggle se estiver no Sea 3
+local function DisableNoclip()
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+        NoclipConnection = nil
+    end
+end
+
+-- Toggle para AutoFarm Bone
+if World3 then
     local ToggleBones = Sub:AddToggle({
         Name = "Auto Farm Bone",
         Description = "Ativa o farm de Reborn Skeleton, Living Zombie, Demonic Soul e Posessed Mummy",
@@ -3614,6 +3634,12 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
 
     ToggleBones:Callback(function(Value)
         getgenv().AutoFarmBone = Value
+
+        if Value then
+            EnableNoclip()
+        else
+            DisableNoclip()
+        end
     end)
 
     -- =========================
@@ -3629,76 +3655,79 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
     local BonePos = CFrame.new(-9506.234375, 172.130615234375, 6117.0771484375)
 
     -- =========================
-    -- Loop unificado de AutoFarm
+    -- Loop AutoFarm Bone
     -- =========================
     spawn(function()
         while task.wait(0.1) do
             if getgenv().AutoFarmBone and World3 then
                 pcall(function()
-                    local enemies = game.Workspace.Enemies:GetChildren()
+                    local player = game.Players.LocalPlayer
+                    local char = player.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    local humanoid = char and char:FindFirstChild("Humanoid")
+                    if not hrp or not humanoid then return end
+
+                    local enemies = workspace.Enemies:GetChildren()
                     local foundEnemy = false
 
                     for _, mob in pairs(enemies) do
-                        if Bone[mob.Name] and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                        if Bone[mob.Name]
+                        and mob:FindFirstChild("Humanoid")
+                        and mob:FindFirstChild("HumanoidRootPart")
+                        and mob.Humanoid.Health > 0 then
+
                             foundEnemy = true
 
-                            -- Puxar inimigo para você
+                            -- Puxar mob
                             mob.HumanoidRootPart.CFrame = Bone[mob.Name]
-                            mob.Head.CanCollide = false
-                            mob.Humanoid.Sit = false
-                            mob.Humanoid:ChangeState(11)
-                            task.wait(0.1)
-                            mob.Humanoid:ChangeState(14)
                             mob.HumanoidRootPart.CanCollide = false
-                            mob.Humanoid.JumpPower = 0
+                            mob.Head.CanCollide = false
                             mob.Humanoid.WalkSpeed = 0
+                            mob.Humanoid.JumpPower = 0
+                            mob.Humanoid:ChangeState(11)
+                            task.wait(0.05)
+                            mob.Humanoid:ChangeState(14)
+
                             local animator = mob.Humanoid:FindFirstChild("Animator")
                             if animator then animator:Destroy() end
-                            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
 
-                            -- Atacar inimigo
+                            sethiddenproperty(player, "SimulationRadius", math.huge)
+
+                            -- Atacar
                             repeat
                                 task.wait(0.1)
                                 AutoHaki()
                                 EquipWeapon(getgenv().SelectWeapon)
-                                mob.HumanoidRootPart.CanCollide = false
-                                mob.Humanoid.WalkSpeed = 0
-                                mob.Head.CanCollide = false
+
+                                -- TP acima do mob (ANTI-QUEDA)
+                                hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 15, 0)
+                                hrp.Velocity = Vector3.zero
+                                hrp.AssemblyLinearVelocity = Vector3.zero
+
                                 getgenv().BonesBring = true
-                                -- Teleporta 20 studs acima do inimigo
-                                topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-                            until not getgenv().AutoFarmBone or not mob.Parent or mob.Humanoid.Health <= 0
+
+                            until not getgenv().AutoFarmBone
+                               or not mob.Parent
+                               or mob.Humanoid.Health <= 0
                         end
                     end
 
-                    -- Se nenhum inimigo encontrado, vai para posição padrão
+                    -- Nenhum mob encontrado → posição padrão
                     if not foundEnemy then
-                        if BypassTP then
-                            local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
-                            if (playerPos - BonePos.Position).Magnitude > 1500 then
-                                BTP(BonePos)
-                            else
-                                topos(BonePos)
-                            end
-                        else
-                            topos(BonePos)
-                        end
+                        TP1(BonePos)
+
+                        hrp.Velocity = Vector3.zero
+                        hrp.AssemblyLinearVelocity = Vector3.zero
 
                         UnEquipWeapon(getgenv().SelectWeapon)
                         getgenv().BonesBring = false
-                        topos(CFrame.new(-9515, 164, 5786))
-
-                        for _, mob in pairs(game.ReplicatedStorage:GetChildren()) do
-                            if Bone[mob.Name] then
-                                topos(mob.HumanoidRootPart.CFrame * CFrame.new(2, 20, 2))
-                            end
-                        end
                     end
                 end)
             end
         end
     end)
 end
+
 
 if World3 then 
 local Toggle1 = Sub:AddToggle({
