@@ -218,7 +218,7 @@ end
 repeat
     task.wait()
 until Player.Character
-function CheckQuest()
+function CheckQuest() 
     MyLevel = game:GetService("Players").LocalPlayer.Data.Level.Value
     if World1 then
         if MyLevel >= 1 and MyLevel <= 9 then
@@ -563,7 +563,7 @@ function CheckQuest()
             CFrameQuest = CFrame.new(5667.6582, 26.7997818, -6486.08984, -0.933587909, 0, -0.358349502, 0, 1, 0, 0.358349502, 0, -0.933587909)
             CFrameMon = CFrame.new(5966.24609375, 62.97002029418945, -6179.3828125)
             if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance",Vector3.new(923.21252441406, 126.9760055542, 32852.83203125))
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance",Vector3.new(-6508.5581054688, 5000.034996032715, -132.83953857422))
             end
         elseif MyLevel >= 1375 and MyLevel <= 1424 then
             Mon = "Snow Lurker"
@@ -888,10 +888,11 @@ function CheckQuest()
             NameQuest = "SubmergedQuest3"
             NameMon = "Grand Devotee"
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
-            CFrameMon = CFrame.new(9557.5849609375, -1928.0404052734375, 9859.1826171875)
-  end
+           CFrameMon   = CFrame.new(9557.58496, -1928.0404, 9859.18262)
+        end
+    end
 end
-end
+
 
 local id = game.PlaceId
 if id == 2753915549 then
@@ -2361,7 +2362,24 @@ task.spawn(function()
     end
 end)
 
-
+function TP1(p554)
+    topos(p554)
+end
+spawn(function()
+    while wait() do
+        if _G.SpinPos then
+            Pos = CFrame.new(0, PosY, - 20)
+            wait(0.1)
+            Pos = CFrame.new(- 20, PosY, 0)
+            wait(0.1)
+            Pos = CFrame.new(0, PosY, 20)
+            wait(0.1)
+            Pos = CFrame.new(20, PosY, 0)
+        else
+            Pos = CFrame.new(0, PosY, 0)
+        end
+    end
+end)
 
 local Toggle1 = Main:AddToggle({
   Name = "Auto Level",
@@ -2445,6 +2463,7 @@ spawn(function()
         end
     end
 end)
+
 
 
 local Players = game:GetService("Players")
