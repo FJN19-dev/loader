@@ -854,6 +854,23 @@ function CheckQuest()
             NameMon = "Reef Bandit"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(10736.6191, -2087.8439, 9338.4882)
+            if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+          end
+        end
         elseif MyLevel >= 2625 and MyLevel <= 2649 then
             Mon = "Coral Pirate"
             LevelQuest = 2
@@ -861,6 +878,23 @@ function CheckQuest()
             NameMon = "Coral Pirate"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(10965.1025, -2158.8842, 9177.2597)
+            if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+          end
+        end
         elseif MyLevel >= 2650 and MyLevel <= 2674 then
             Mon = "Sea Chanter"
             LevelQuest = 1
@@ -868,6 +902,23 @@ function CheckQuest()
             NameMon = "Sea Chanter"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(10621.0342, -2087.8440, 10102.0332)
+        if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+          end
+        end
         elseif MyLevel >= 2675 and MyLevel <= 2699 then
             Mon = "Ocean Prophet"
             LevelQuest = 2
@@ -875,6 +926,23 @@ function CheckQuest()
             NameMon = "Ocean Prophet"
             CFrameQuest = CFrame.new(10882.264, -2086.322, 10034.226)
             CFrameMon = CFrame.new(11056.1445, -2001.6717, 10117.4493)
+        if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+          end
+        end
         elseif MyLevel >= 2700 and MyLevel <= 2724 then
             Mon = "High Disciple"
             LevelQuest = 1
@@ -882,43 +950,50 @@ function CheckQuest()
             NameMon = "High Disciple"
             CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
             CFrameMon = CFrame.new(9828.087890625, -1940.908935546875, 9693.0634765625)
-local CFramePosicao
-if MyLevel >= 2725 and MyLevel <= 2800 then
-    Mon = "Grand Devotee"
-    LevelQuest = 2
-    NameQuest = "SubmergedQuest3"
-    NameMon = "Grand Devotee"
-    CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
-    CFrameMon   = CFrame.new(9557.58496, -1928.0404, 9859.18262)
-    CFramePosicao = CFrame.new(-16267.7178, 25.223526, 1372.2135,0.473281175, -7.09690227e-08, 0.88091141,-1.6041092e-08, 1, 8.91814622e-08,-0.88091141, -5.63386884e-08, 0.473281175)
-end
-end
-end
-end
-
--- Função para teleportar para um CFrame
-local function IrParaCFrame(CF)
-    local player = game.Players.LocalPlayer
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-
-    hrp.CFrame = CF
-    task.wait(1)
-end
-
--- Função para falar com NPC da Submerged Island
-local function FalarComNPCSubmerged()
+        if getgenv().AutoFarm then
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local Modules = ReplicatedStorage:WaitForChild("Modules")
     local Net = Modules:WaitForChild("Net")
-
     local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
     local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
-    RF:InvokeServer("TravelToSubmergedIsland")
-    task.wait(0.5)
-    CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
-    task.wait(1)
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+          end
+        end
+        elseif MyLevel >= 2725 and MyLevel <= 2800 then
+            Mon = "Grand Devotee"
+            LevelQuest = 2
+            NameQuest = "SubmergedQuest3"
+            NameMon = "Grand Devotee"
+            CFrameQuest = CFrame.new(9636.52441, -1992.19507, 9609.52832)
+            CFrameMon = CFrame.new(9557.58496, -1928.0404, 9859.18262)
+            CFramePos = CFrame.new(-16267.7178, 25.223526, 1372.2135,0.473281175, -7.09690227e-08, 0.88091141,-1.6041092e-08, 1, 8.91814622e-08,-0.88091141, -5.63386884e-08, 0.473281175)
+if getgenv().AutoFarm then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Modules = ReplicatedStorage:WaitForChild("Modules")
+    local Net = Modules:WaitForChild("Net")
+    local RF = Net:WaitForChild("RF/SubmarineWorkerSpeak")
+    local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+
+    -- Checa se o jogador NÃO está na Submerged Island
+    if playerPos.Y < -1500 then -- exemplo, Submerged Island fica abaixo de Y -1500
+        RF:InvokeServer("TravelToSubmergedIsland")
+        task.wait(0.5)
+        CommF:InvokeServer("SetLastSpawnPoint", "SubmergedIsland")
+        task.wait(1)
+          end
+        end
+        end
+    end
 end
 
 
@@ -2430,16 +2505,12 @@ spawn(function()
                 local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                 if not humanoidRoot then return end
 
-                -- 🔹 IR PARA O NPC SE EXISTIR CFramePosicao
-                if CFramePosicao and not FoiNPC then
-                    -- Exemplo: Submerged Island (ajuste se quiser)
-                    if humanoidRoot.Position.Y > -1500 then
-                        FoiNPC = true
-                        IrParaCFrame(CFramePosicao)
-                        FalarComNPCSubmerged()
-                        task.wait(1)
-                        return -- 🔴 IMPORTANTE: para o loop aqui
-                    end
+                -- 🔴 VAI PRIMEIRO PARA CFramePos (UMA VEZ)
+                if CFramePos and not JaFoiCFramePos then
+                    JaFoiCFramePos = true
+                    IrParaCFramePos(CFramePos)
+                    task.wait(1)
+                    return -- para aqui e continua no próximo loop
                 end
 
                 local questGui = player.PlayerGui.Main.Quest
@@ -2461,7 +2532,7 @@ spawn(function()
                     local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
 
                     if distance > 1500 then
-                        TP1(CFrameQuest * CFrame.new(0, 25, 5))
+                        BTP(CFrameQuest * CFrame.new(0, 25, 5))
                     else
                         TP1(CFrameQuest)
                     end
@@ -2473,7 +2544,6 @@ spawn(function()
                     end
 
                 else
-                    -- 🔹 MATAR MOBS
                     for _, mob in pairs(workspace.Enemies:GetChildren()) do
                         if mob:FindFirstChild("HumanoidRootPart")
                         and mob:FindFirstChild("Humanoid")
@@ -2504,6 +2574,7 @@ spawn(function()
         end
     end
 end)
+
 
 
 
@@ -3614,12 +3685,32 @@ if World3 then
 local Section = Sub:AddSection({"Ossos"})
 end
 
-if World3 then 
-local Paragraph = Sub:AddParagraph({"Farma Osso", "Se Você for Farma Osso Vai na aba Main e muda O modo de Farme Pra bone e Start farm"})
+local RunService = game:GetService("RunService")
+local NoclipConnection
+
+local function EnableNoclip()
+    if NoclipConnection then return end
+    NoclipConnection = RunService.Stepped:Connect(function()
+        local char = game.Players.LocalPlayer.Character
+        if char then
+            for _, v in pairs(char:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
+                end
+            end
+        end
+    end)
 end
 
--- Toggle para AutoFarm Bone (sem dropdown)
-if World3 then  -- só cria o toggle se estiver no Sea 3
+local function DisableNoclip()
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+        NoclipConnection = nil
+    end
+end
+
+-- Toggle para AutoFarm Bone
+if World3 then
     local ToggleBones = Sub:AddToggle({
         Name = "Auto Farm Bone",
         Description = "Ativa o farm de Reborn Skeleton, Living Zombie, Demonic Soul e Posessed Mummy",
@@ -3628,6 +3719,12 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
 
     ToggleBones:Callback(function(Value)
         getgenv().AutoFarmBone = Value
+
+        if Value then
+            EnableNoclip()
+        else
+            DisableNoclip()
+        end
     end)
 
     -- =========================
@@ -3643,76 +3740,79 @@ if World3 then  -- só cria o toggle se estiver no Sea 3
     local BonePos = CFrame.new(-9506.234375, 172.130615234375, 6117.0771484375)
 
     -- =========================
-    -- Loop unificado de AutoFarm
+    -- Loop AutoFarm Bone
     -- =========================
     spawn(function()
         while task.wait(0.1) do
             if getgenv().AutoFarmBone and World3 then
                 pcall(function()
-                    local enemies = game.Workspace.Enemies:GetChildren()
+                    local player = game.Players.LocalPlayer
+                    local char = player.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    local humanoid = char and char:FindFirstChild("Humanoid")
+                    if not hrp or not humanoid then return end
+
+                    local enemies = workspace.Enemies:GetChildren()
                     local foundEnemy = false
 
                     for _, mob in pairs(enemies) do
-                        if Bone[mob.Name] and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                        if Bone[mob.Name]
+                        and mob:FindFirstChild("Humanoid")
+                        and mob:FindFirstChild("HumanoidRootPart")
+                        and mob.Humanoid.Health > 0 then
+
                             foundEnemy = true
 
-                            -- Puxar inimigo para você
+                            -- Puxar mob
                             mob.HumanoidRootPart.CFrame = Bone[mob.Name]
-                            mob.Head.CanCollide = false
-                            mob.Humanoid.Sit = false
-                            mob.Humanoid:ChangeState(11)
-                            task.wait(0.1)
-                            mob.Humanoid:ChangeState(14)
                             mob.HumanoidRootPart.CanCollide = false
-                            mob.Humanoid.JumpPower = 0
+                            mob.Head.CanCollide = false
                             mob.Humanoid.WalkSpeed = 0
+                            mob.Humanoid.JumpPower = 0
+                            mob.Humanoid:ChangeState(11)
+                            task.wait(0.05)
+                            mob.Humanoid:ChangeState(14)
+
                             local animator = mob.Humanoid:FindFirstChild("Animator")
                             if animator then animator:Destroy() end
-                            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
 
-                            -- Atacar inimigo
+                            sethiddenproperty(player, "SimulationRadius", math.huge)
+
+                            -- Atacar
                             repeat
                                 task.wait(0.1)
                                 AutoHaki()
                                 EquipWeapon(getgenv().SelectWeapon)
-                                mob.HumanoidRootPart.CanCollide = false
-                                mob.Humanoid.WalkSpeed = 0
-                                mob.Head.CanCollide = false
+
+                                -- TP acima do mob (ANTI-QUEDA)
+                                hrp.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 15, 0)
+                                hrp.Velocity = Vector3.zero
+                                hrp.AssemblyLinearVelocity = Vector3.zero
+
                                 getgenv().BonesBring = true
-                                -- Teleporta 20 studs acima do inimigo
-                                topos(mob.HumanoidRootPart.CFrame * CFrame.new(0, 20, 0))
-                            until not getgenv().AutoFarmBone or not mob.Parent or mob.Humanoid.Health <= 0
+
+                            until not getgenv().AutoFarmBone
+                               or not mob.Parent
+                               or mob.Humanoid.Health <= 0
                         end
                     end
 
-                    -- Se nenhum inimigo encontrado, vai para posição padrão
+                    -- Nenhum mob encontrado → posição padrão
                     if not foundEnemy then
-                        if BypassTP then
-                            local playerPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
-                            if (playerPos - BonePos.Position).Magnitude > 1500 then
-                                BTP(BonePos)
-                            else
-                                topos(BonePos)
-                            end
-                        else
-                            topos(BonePos)
-                        end
+                        TP1(BonePos)
+
+                        hrp.Velocity = Vector3.zero
+                        hrp.AssemblyLinearVelocity = Vector3.zero
 
                         UnEquipWeapon(getgenv().SelectWeapon)
                         getgenv().BonesBring = false
-                        topos(CFrame.new(-9515, 164, 5786))
-
-                        for _, mob in pairs(game.ReplicatedStorage:GetChildren()) do
-                            if Bone[mob.Name] then
-                                topos(mob.HumanoidRootPart.CFrame * CFrame.new(2, 20, 2))
-                            end
-                        end
                     end
                 end)
             end
         end
     end)
 end
+
 
 if World3 then 
 local Toggle1 = Sub:AddToggle({
