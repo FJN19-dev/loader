@@ -2505,13 +2505,12 @@ spawn(function()
                 local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                 if not humanoidRoot then return end
 
-                -- 🔴 VAI PRIMEIRO PARA CFramePos (UMA VEZ)
-                if CFramePos and not JaFoiCFramePos then
-                    JaFoiCFramePos = true
-                    IrParaCFramePos(CFramePos)
-                    task.wait(1)
-                    return -- para aqui e continua no próximo loop
-                end
+                local distanci = (humanoidRoot.Position - CFramePos.Position).Magnitude
+                    if distanci > 1500 then
+                    TP1(CFramePos * CFrame.new(0, 25, 5))
+                    else
+                        TP1(CFramePos)
+                    end
 
                 local questGui = player.PlayerGui.Main.Quest
                 local questVisible = questGui.Visible
@@ -2532,7 +2531,7 @@ spawn(function()
                     local distance = (humanoidRoot.Position - CFrameQuest.Position).Magnitude
 
                     if distance > 1500 then
-                        TP1(CFrameQuest * CFrame.new(0, 25, 5))
+                        BTP(CFrameQuest * CFrame.new(0, 25, 5))
                     else
                         TP1(CFrameQuest)
                     end
